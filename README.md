@@ -11,7 +11,7 @@ A Python package developed by the Jin Lab for combining, benchmarking, and exten
 ## Installation
 
 ```bash
-git clone https://github.com/dylan-plummer/SCORE.git;
+git clone https://github.com/JinLabBioinfo/SCORE.git;
 pip install .
 ```
 

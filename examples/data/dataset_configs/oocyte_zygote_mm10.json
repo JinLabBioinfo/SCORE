@@ -1,0 +1,24 @@
+{
+  "embedding_algs": [
+    "2d_pca"
+  ],
+  "baseline_sweep": false,
+  "preprocessing_sweep": false,
+  "distance_sweep": false,
+  "no_viz": false,
+  "no_cache": true,
+  "dset": "oocyte_zygote_mm10",
+  "color_config": "oocyte_zygote_mm10.json",
+  "scool": "data/scools/oocyte_zygote_mm10_1M.scool",
+  "resolution": "1M",
+  "assembly": "mm10",
+  "reference": "data/oocyte_zygote_ref",
+  "n_strata": 32,
+  "n_cell_types": 3,
+  "ignore_filter": false,
+  "n_runs": 1,
+  "three3dvi_epochs": 1,
+  "wandb": false,
+  "n_epochs": 1,
+  "higashi_epochs": 1
+}

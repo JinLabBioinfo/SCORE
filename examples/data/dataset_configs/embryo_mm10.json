@@ -1,0 +1,27 @@
+{
+  "embedding_algs": [
+    "scHiCluster"
+  ],
+  "schictools_n_strata": -1,
+  "dset": "embryo_mm10",
+  "exp": "all",
+  "scool": "data/scools/embryo_mm10_1M.scool",
+  "assembly": "mm10",
+  "reference": "data/embryo_ref",
+  "min_depth": 0,
+  "n_strata": 20,
+  "n_cell_types": 5,
+  "ignore_filter": true,
+  "resolution": "1M",
+  "file_suffix": ".comb",
+  "n_clusters": 5,
+  "binarize": true,
+  "downsample": false,
+  "n_epochs": 150,
+  "beta": 10,
+  "batch_size": 64,
+  "latent_dim": 8,
+  "start_filter_size": 7,
+  "wandb": false,
+  "n_runs": 1
+}

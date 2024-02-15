@@ -1,0 +1,1 @@
+from score.methods.TOKI.TOKI import run_detoki

@@ -2,11 +2,9 @@
 
 # ***SCORE***: Single-cell Chromatin Organization Representation and Embedding
 
-<div align="center">
+
 
 A Python package developed by the Jin Lab for combining, benchmarking, and extending methods of embedding, clustering, and visualizing single-cell Hi-C data.
-
-</div>
 
 ## Installation
 

@@ -23,6 +23,8 @@ Some methods such as Va3DE rely on [GPU accelerated Tensorflow builds](https://w
 pip install tensorflow[and-cuda]
 ```
 
+We also provide Va3DE as a standalone package which can be installed here: https://github.com/JinLabBioinfo/Va3DE
+
 Other methods such as Higashi rely on [GPU accelerated builds of PyTorch](https://pytorch.org/get-started/locally/).
 
 ### SCORE Usage

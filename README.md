@@ -10,6 +10,7 @@ A Python package developed by the Jin Lab for combining, benchmarking, and exten
 
 ```bash
 git clone https://github.com/JinLabBioinfo/SCORE.git;
+cd SCORE;
 pip install .
 ```
 

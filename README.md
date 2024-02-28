@@ -61,6 +61,7 @@ score embed --dset pfc \  # name for saving results
             --reference pfc_ref \  # metadata reference
             --embedding_algs InnerProduct \  # embedding method name
             --n_strata 10 \  # 0-2Mb
+            --min_depth 50000  # filter low depth cells
 ```
 
 ![](assets/images/embedding_shortrange.jpg)
@@ -72,6 +73,7 @@ score embed --dset pfc \  # name for saving results
             --embedding_algs InnerProduct \  # embedding method name
             --strata_offset 10 \  # ignore first 10 strata (i.e 0-2Mb)
             --n_strata 100 \
+            --min_depth 50000
 ```
 
 ![](assets/images/embedding_longrange.jpg)

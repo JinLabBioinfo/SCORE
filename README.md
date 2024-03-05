@@ -51,7 +51,7 @@ This will create a new `results` directory (or a directory specified by `--out`)
 We also provide the datasets analyzed in our benchmark publication at various resolutions which can be downloaded from the following to reproduce our results:
 
 ```bash
-wget -r hiview10.gene.cwru.edu/~dmp131/scHi-C
+wget -r hiview10.gene.cwru.edu/~xww/scHi-C_data.tar.gz
 ```
 
 For example, to reproduce the short-range complex tissue analysis, we can run:

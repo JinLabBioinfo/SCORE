@@ -749,8 +749,8 @@ class DataGenerator():
             for cell_name in tqdm(self.cell_list):
                 if self.reference.loc[cell_name, 'cluster'] == celltype:
                     cools.append(f"{self.scool_file}::/cells/{cell_name}")
-            cooler.merge_coolers(os.path.join(out_dir, f'{celltype}_{self.res_name}.cool'), cools, mergebuf=1000000)
-            c = cooler.Cooler(os.path.join(out_dir, f'{celltype}_{self.res_name}.cool'))
+            cooler.merge_coolers(os.path.join(out_dir, f'{celltype.replace("/", "_")}_{self.res_name}.cool'), cools, mergebuf=1000000)
+            c = cooler.Cooler(os.path.join(out_dir, f'{celltype.replace("/", "_")}_{self.res_name}.cool'))
             cooler.balance_cooler(c, chunksize=10000000, cis_only=True, store=True)
 
     def write_3dvi_ref(self, out_dir):

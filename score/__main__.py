@@ -489,8 +489,11 @@ def app():
             downsample_frac = None
         else:
             downsample_frac = float(args.scool_downsample)
-        dataset.write_scool(f"data/scools/{dataset.dataset_name}_{dataset.res_name}.scool",
-                            simulate=args.simulate, append_simulated=args.append_simulated, downsample_frac=downsample_frac)
+        if args.out.endswith('.scool'):
+            dataset.write_scool(args.out, simulate=args.simulate, append_simulated=args.append_simulated, downsample_frac=downsample_frac)
+        else:
+            dataset.write_scool(f"data/scools/{dataset.dataset_name}_{dataset.res_name}.scool",
+                                simulate=args.simulate, append_simulated=args.append_simulated, downsample_frac=downsample_frac)
 
     elif sys.argv[1] == '1d_agg':
         args, x, y, depths, batches, dataset, valid_dataset = parse_args(

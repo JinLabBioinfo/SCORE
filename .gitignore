@@ -27,6 +27,11 @@ examples/wandb/*
 examples/notebooks/results/*
 examples/notebooks/schictools_data
 
+tutorials/results
+tutorials/schictools_data
+tutorials/schic-topic-model
+tutorials/data
+
 tests/test_example/data/inadequate_cells
 tests/test_example/results
 tests/test_example/wandb

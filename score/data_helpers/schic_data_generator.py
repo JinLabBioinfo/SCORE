@@ -313,8 +313,13 @@ class DataGenerator():
             anchor_dict = anchor_ref['start'].to_dict()
             anchor_chr_dict = anchor_ref['chr'].to_dict()
 
-            chr_offsets, _ = self.get_uniform_bins(1000000, bin_offsets=False)
-            with Pool(12) as p:
+            chr_offsets = {}
+            current_offset = 0
+            for chrom in sorted_nicely(pd.unique(anchor_ref['chr'])):
+                chr_offsets[chrom] = current_offset
+                chrom_mask = anchor_ref['chr'] == chrom
+                current_offset += anchor_ref.loc[chrom_mask, 'end'].max()
+            with Pool(6) as p:
                 results = []
                 for cell_name in tqdm(self.cell_list):
                     results.append(p.apply_async(self.get_mitotic_reads, args=(
@@ -1639,7 +1644,7 @@ class DataGenerator():
                         if chr_reads < chr_length:
                             if self.verbose:
                                 print(len(remove_cells), 'Dropping', i,
-                                      chr_name, chr_length, chr_reads, cell_name)
+                                      chr_name, chr_length, chr_reads)
                             remove_cells.append(cell_name)
                             break
             np.save(os.path.join('data/inadequate_cells',

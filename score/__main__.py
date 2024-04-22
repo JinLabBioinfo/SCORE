@@ -343,6 +343,7 @@ def app():
                         start_time=start_time, wandb_config=wandb_config)
                 
             elif method_name == 'insulation':
+                os.makedirs('data/dataset_summaries', exist_ok=True)
                 x = dataset.insulation_vectors()
                 exp = PCAExperiment(exp_name, x, y, features, dataset, n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated,
                                     other_args=args)
@@ -513,12 +514,27 @@ def app():
             parser)
         dataset.write_pseudo_bulk_coolers()
 
+    elif sys.argv[1] == 'bin':
+        args, x, y, depths, batches, dataset, valid_dataset = parse_args(
+            parser)
+        factor = args.bin_factor
+        new_resolution = dataset.resolution * factor
+        if new_resolution > 1e6:
+            new_res_name = f'{int(new_resolution/1e6)}M'
+        else:
+            new_res_name = f'{int(new_resolution/1e3)}kb'
+        if args.out.endswith('.scool'):
+            dataset.write_binned_scool(args.out, factor=factor, new_res_name=new_res_name)
+        else:
+            dataset.write_binned_scool(f'data/scools/{dataset.dataset_name}_{new_res_name}.scool', factor=factor, new_res_name=new_res_name)
+
     else:
         if 'help' not in sys.argv[1]:
             console.print("[bright_red]Unrecognized main argument...[/]")
         else:
             console.print("[bright_green]Welcome to SCORE! The current options are:[/]")
             console.print("[yellow]\tscore cooler --help\t| convert a raw dataset to .scool[/]")
+            console.print("[yellow]\tscore bin --help\t| coarsen an existing .scool file to lower resolution[/]")
             console.print("[yellow]\tscore embed --help\t| run an embedding/clustering pipeline[/]")
             console.print("[yellow]\tscore compare --help\t| compare the results of various embeddings[/]")
 

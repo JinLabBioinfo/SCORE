@@ -67,6 +67,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--assembly', required=False, type=str, default='hg19', help='genome assembly used for mapping. important for methods like scGAD and Higashi which consider specific genomic loci')
     parser.add_argument('--reference', required=False, type=str, help='path to tsb delimited reference file containing at least cell name column and any other metadata like celltype, depth, etc')
     parser.add_argument('--subsample_n_cells', default=None, type=float, help=argparse.SUPPRESS)
+    parser.add_argument('--bin_factor', default=2, type=int)
     parser.add_argument('--no_cache', action='store_true')
     parser.add_argument('--read_distribution', required=False, type=str)
     parser.add_argument('--min_depth', default=0, type=int)
@@ -80,6 +81,8 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--wandb', action='store_true')
     parser.add_argument('--continuous', action='store_true', help='data represents continuous rather than discrete cell states (e.g cell cycle)')
     parser.add_argument('--filter_mitotic', action='store_true')
+    parser.add_argument('--mitotic_max', default=0.017, type=float, help=argparse.SUPPRESS)
+    parser.add_argument('--mitotic_min', default=0.002, type=float, help=argparse.SUPPRESS)
     parser.add_argument('--ignore_filter', action='store_true')
     parser.add_argument('--ignore_chr_filter', action='store_true')
     parser.add_argument('--load_results', action='store_true', help=argparse.SUPPRESS)
@@ -467,7 +470,8 @@ def parse_args(parser, extra_args=None, verbose=True):
     if filter_mitotic:
         read_dist_ref = train_generator.check_mitotic_cells(from_frags=False)
         read_dist_ref['cell'] = read_dist_ref['cell'].apply(lambda s: s + f'.{res_name}')
-        read_dist_ref = read_dist_ref[read_dist_ref['mitotic'] <= 0.1]
+        read_dist_ref = read_dist_ref[read_dist_ref['mitotic'] <= args.mitotic_max]
+        read_dist_ref = read_dist_ref[read_dist_ref['mitotic'] >= args.mitotic_min]
         new_cell_list = []
         new_cell_list = read_dist_ref['cell'].to_list()
         train_generator.cell_list = new_cell_list

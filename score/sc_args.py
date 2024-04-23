@@ -168,7 +168,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     try:
         if sys.argv[1] == 'compare':
             return args
-        if sys.argv[1] == 'cooler':
+        if sys.argv[1] == 'cooler' or sys.argv[1] == 'bin':  # do not filter if just writing or binning data
             args.ignore_filter = True
             args.ignore_chr_filter = True
     except Exception:
@@ -328,6 +328,10 @@ def parse_args(parser, extra_args=None, verbose=True):
             reference = reference[reference['depth'] <= max_depth].reset_index()
             full_reference.loc[full_reference['depth'] <= max_depth, 'filtered_reason'] = 'reference depth > max_depth'
         reference['cluster'] = reference['cluster'].apply(lambda s: s.replace('.remap', ''))  # remove any unecessary suffixes
+        if reference['batch'].dtype != int:
+            batches = reference['batch'].unique()
+            batch_dict = {b: i for i, b in enumerate(batches)}
+            reference['batch'] = reference['batch'].map(batch_dict)
         reference['batch'] = reference['batch'] - reference['batch'].min()  # force zero indexed batches for batch removal training
         reference['type'] = 'real'
         if args.append_simulated:

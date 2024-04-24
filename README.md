@@ -36,6 +36,14 @@ You can verify that the installation was successful by running
 score --help
 ```
 
+### Tutorials
+
+We provide some tutorials to help you get started:
+
+* [Introduction (Creating .scool files and generating your first embeddings)](https://github.com/JinLabBioinfo/SCORE/blob/41a0ed371ba8ef00bff3a13c9d871bae116a1d1b/tutorials/intro.ipynb)
+
+### Basic CLI usage
+
 We provide a small example dataset in the `examples/data` directory. To run `SCORE` you simple need to provide an input `.scool` file and a metadata reference file. You can specify the embedding tool(s) you wish to test using the `--embedding_algs` argument
 
 ```bash
@@ -78,3 +86,15 @@ score embed --dset pfc \  # name for saving results
 ```
 
 ![](assets/images/embedding_longrange.jpg)
+
+
+Including multiple embedding methods and executing multiple runs using `--n_runs` will produce a local benchmark on the dataset provided:
+
+```bash
+score embed --dset embryo \  # name for saving results
+            --scool embryo_500kb.scool \  # path to scool file
+            --reference embryo_ref \  # metadata reference
+            --ignore_filter \  # keep all cells
+            --embedding_algs 1d_pca InnerProduct scHiCluster \
+            --n_runs 10
+```

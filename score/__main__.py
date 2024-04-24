@@ -484,6 +484,7 @@ def app():
                 compare_methods_wilcoxon(args.dset, res_dir, main_metric='accuracy', emb_plots=not args.no_viz, results_dir=args.out)
 
     elif sys.argv[1] == 'cooler':
+        console.print("[bright_green]Creating .scool file...[/]")
         args, x, y, depths, batches, dataset, valid_dataset = parse_args(
             parser)
         if args.scool_downsample is None:
@@ -493,6 +494,7 @@ def app():
         if args.out.endswith('.scool'):
             dataset.write_scool(args.out, simulate=args.simulate, append_simulated=args.append_simulated, downsample_frac=downsample_frac)
         else:
+            os.makedirs("data/scools/", exist_ok=True)
             dataset.write_scool(f"data/scools/{dataset.dataset_name}_{dataset.res_name}.scool",
                                 simulate=args.simulate, append_simulated=args.append_simulated, downsample_frac=downsample_frac)
 
@@ -515,6 +517,7 @@ def app():
         dataset.write_pseudo_bulk_coolers()
 
     elif sys.argv[1] == 'bin':
+        console.print("[bright_green]Coarsening .scool file to lower resolution...[/]")
         args, x, y, depths, batches, dataset, valid_dataset = parse_args(
             parser)
         factor = args.bin_factor

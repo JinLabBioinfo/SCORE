@@ -16,6 +16,7 @@ from score.experiments.scvi_experiment import ScVIExperiment
 from score.experiments.peakvi_experiment import PeakVIExperiment
 from score.experiments.lda_experiment import LDAExperiment
 from score.experiments.higashi_experiment import HigashiExperiment
+from score.experiments.snapatac_experiment import SnapATACExperiment
 from score.experiments.fast_higashi_experiment import FastHigashiExperiment
 
 from score.utils.matrix_ops import get_flattened_matrices
@@ -89,6 +90,19 @@ def lsi_2d_exp(x, y, features, dataset, args, operations=None, load_results=Fals
         exp_name += ':' + ','.join(operations)
     exp = LSI2DExperiment(exp_name, x, y, features, dataset, preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
     exp.run(load=load_results, log_wandb=args.wandb, start_time=start_time, wandb_config=wandb_config)
+
+def snap_atac_exp(x, y, features, dataset, args, operations=None, load_results=False, wandb_config=None):
+    start_time = time.time()
+    if load_results:
+        x = None 
+    else:
+        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations)
+    exp_name = 'snapatac'
+    if operations is not None:
+        exp_name += ':' + ','.join(operations)
+    exp = SnapATACExperiment(exp_name, x, y, features, dataset, preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
+    exp.run(load=load_results, log_wandb=args.wandb, start_time=start_time, wandb_config=wandb_config)
+
 
 
 def cisTopic_exp(x, y, features, dataset, args, exp_name=None, operations=None, minc=8, maxc=32, load_results=False, wandb_config=None):
@@ -285,11 +299,14 @@ def higashi_exp(x, y, features, dataset, args, load_results=False, fast_higashi=
     if operations is not None:
         exp_name += ':' + ','.join(operations)
     if fast_higashi:
-        experiment = FastHigashiExperiment('fast_higashi', x, y, features, dataset, eval_inner=False, simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
+        experiment = FastHigashiExperiment('fast_higashi', x, y, features, dataset, depth_norm=not args.no_depth_norm, eval_inner=False, simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
     else:
         experiment = HigashiExperiment('scghost' if run_scghost else 'higashi', x, y, features, dataset, eval_inner=False, simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
     
     if fast_higashi:
+        # set torch device
+        import torch
+        torch.cuda.is_available = lambda : False
         # Initialize the Higashi instance
         for run_i in range(int(args.n_runs)):
             start_time = time.time()
@@ -298,10 +315,10 @@ def higashi_exp(x, y, features, dataset, args, load_results=False, fast_higashi=
                 model = FastHigashi(config_path=config,
                     path2input_cache=out_dir,
                     path2result_dir=out_dir,
-                    off_diag=50,
+                    off_diag=args.n_strata,
                     filter=False,
-                    do_conv=False,
-                    do_rwr=False,
+                    do_conv=True,
+                    do_rwr=True,
                     do_col=False,
                     no_col=False)
                 higashi_model.process_data()
@@ -309,7 +326,7 @@ def higashi_exp(x, y, features, dataset, args, load_results=False, fast_higashi=
 
 
                 model.run_model(dim1=.6,
-                    rank=min(256, dataset.n_cells),
+                    rank=min(args.latent_dim, dataset.n_cells),
                     n_iter_parafac=1,
                     extra="")
 

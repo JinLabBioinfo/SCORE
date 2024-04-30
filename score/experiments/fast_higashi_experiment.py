@@ -10,8 +10,9 @@ from score.experiments.experiment import Experiment
 
 
 class FastHigashiExperiment(Experiment):
-    def __init__(self, name, x, y, depths, data_generator, **kwargs):
+    def __init__(self, name, x, y, depths, data_generator, depth_norm=False, **kwargs):
         super().__init__(name, x, y, depths, data_generator, **kwargs)
+        self.depth_norm = depth_norm
         self.emb_dir = 'data/higashi_data/%s_%s/tmp/embed' % (data_generator.dataset_name, data_generator.res_name)
         self.label_file = 'data/higashi_data/%s_%s/label_info.pickle' % (data_generator.dataset_name, data_generator.res_name)
         self.ref = pickle.load(open(self.label_file, "rb"))
@@ -37,5 +38,8 @@ class FastHigashiExperiment(Experiment):
     def get_embedding(self, iter_n=0):
         z = self.model.fetch_cell_embedding(final_dim=min(256, self.data_generator.n_cells))
         print(z)
-        print(z.shape)
-        return z
+        print(z['embed_l2_norm'].shape)
+        if self.depth_norm:
+            return z['embed_l2_norm_correct_coverage_fh']
+        else:
+            return z['embed_l2_norm']

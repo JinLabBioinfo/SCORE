@@ -237,6 +237,7 @@ class Experiment():
         import matplotlib.pyplot as plt
         import plotly.express as px
         import scanpy as sc
+        sc.settings.verbosity = 0
         import anndata as ad
 
         os.makedirs(os.path.join(self.out_dir, 'celltype_plots'), exist_ok=True)
@@ -378,6 +379,8 @@ class Experiment():
         if additional_out_dir != '':
             os.makedirs(os.path.join(self.out_dir, f'other_feats{additional_out_dir}'), exist_ok=True)
         for feat in self.features_dict.keys():
+            # if len(adata.obs[feat].unique()) == 1:
+            #     continue
             try:
                 fig, axs = plt.subplots(1, 3, figsize=(18, 6))
                 sc.pl.pca(adata, color=feat, ax=axs[0], show=False, title="PCA Embeddings", legend_loc=None)

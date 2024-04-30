@@ -10,6 +10,7 @@ from score.experiments.lsi_2d_experiment import LSI2DExperiment
 from score.experiments.peakvi_experiment import PeakVIExperiment
 from score.experiments.scvi_experiment import ScVIExperiment
 from score.experiments.vade_experiment import VaDEExperiment
+from score.experiments.snapatac_experiment import SnapATACExperiment
 from score.experiments.experiment import Experiment
 
 __all__ = ["ScHiClusterExperiment",
@@ -24,4 +25,5 @@ __all__ = ["ScHiClusterExperiment",
             "PeakVIExperiment",
             "ScVIExperiment",
             "VaDEExperiment",
-            "ScHiCToolsExperiment"]
+            "ScHiCToolsExperiment",
+            "SnapATACExperiment"]

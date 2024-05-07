@@ -790,12 +790,14 @@ class DataGenerator():
         ref.to_csv(os.path.join(out_dir, 'data_summary.txt'),
                    sep='\t', index=False)
 
-    def write_lda_matrix(self, cell_name, chr_list, chr_anchor_dicts, chr_anchor_dfs, norm=True, rw=False):
+    def write_lda_matrix(self, cell_name, chr_list, chr_anchor_dicts, chr_anchor_dfs, norm=True, rw=False, keep_trans=False):
         anchor_to_anchor = self.get_cell_pixels(cell_name)
         anchor_to_anchor.rename(columns={'obs': 'count'}, inplace=True)
         chr_map = self.anchor_list.set_index('anchor')['chr'].to_dict()
         anchor_to_anchor['chr1'] = anchor_to_anchor['a1'].map(chr_map)
         anchor_to_anchor['chr2'] = anchor_to_anchor['a2'].map(chr_map)
+        if not keep_trans:
+            anchor_to_anchor = anchor_to_anchor[anchor_to_anchor['chr1'] == anchor_to_anchor['chr2']].reset_index(drop=True)
         anchor_to_anchor['a1'] = anchor_to_anchor['a1'].apply(lambda s: s.split('_')[-1])
         anchor_to_anchor['a2'] = anchor_to_anchor['a2'].apply(lambda s: s.split('_')[-1])
         lda_df = anchor_to_anchor[['a1', 'a2', 'count', 'chr1', 'chr2']]
@@ -1672,7 +1674,7 @@ class DataGenerator():
         else:
             return mat[..., 0]
 
-    def get_compressed_band_cell(self, cell, preprocessing=None):
+    def get_compressed_band_cell(self, cell, preprocessing=None, rw_max=100):
         if cell in self.sparse_matrices.keys():
             compressed_sparse_matrix = self.sparse_matrices[cell]
         else:
@@ -1703,11 +1705,13 @@ class DataGenerator():
                         tmp_mat = convolution(tmp_mat)
                     elif op.lower() == 'random_walk':
                         tmp_mat = random_walk(tmp_mat)
+                        tmp_mat = np.int32(tmp_mat * rw_max)
                     elif op.lower() == 'vc_sqrt_norm':
                         tmp_mat = VC_SQRT_norm(tmp_mat)
                     elif op.lower() == 'google':
                         tmp_mat = graph_google(tmp_mat)
                 matrix = csr_matrix(tmp_mat)
+
             compressed_matrix = np.zeros(
                 (self.limit2Mb, self.matrix_len + self.matrix_pad))
             for i in range(self.limit2Mb):
@@ -1721,3 +1725,4 @@ class DataGenerator():
                 compressed_sparse_matrix = csr_matrix(compressed_matrix)
                 self.sparse_matrices[cell] = compressed_sparse_matrix
         return compressed_sparse_matrix
+

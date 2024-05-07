@@ -78,6 +78,8 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--latent_dim', default=32, type=int, help='number of dimensions in final embedding')
     parser.add_argument('--strata_offset', default=None, type=int, help='ignore strata within this range')
     parser.add_argument('--n_cell_types', default=None, type=int, help=argparse.SUPPRESS)
+    parser.add_argument('--random_walk_iter', default=1, type=int, help=argparse.SUPPRESS)
+    parser.add_argument('--random_walk_ratio', default=1.0, type=float, help=argparse.SUPPRESS)
     parser.add_argument('--wandb', action='store_true')
     parser.add_argument('--continuous', action='store_true', help='data represents continuous rather than discrete cell states (e.g cell cycle)')
     parser.add_argument('--filter_mitotic', action='store_true')

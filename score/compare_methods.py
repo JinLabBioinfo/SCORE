@@ -2,7 +2,6 @@ import os
 import json 
 import pandas as pd
 import numpy as np
-import pingouin as pg
 import seaborn as sns
 import matplotlib.pyplot as plt
 plt.rcParams['figure.autolayout'] = False
@@ -121,31 +120,31 @@ def compare_methods_wilcoxon(dataset_name, res_name, main_metric='ari', palette=
                     in_df = df_tmp.loc[(df_tmp['metric'] == main_metric) & (df_tmp['cluster_alg'] == cluster_alg)]
                     compare_mask = (in_df['method'] == method_name) & (in_df['preprocessing'] == preprocessing) & (in_df['n_strata'] == n_strata) & (in_df['resolution'] == resolution_value)
                     best_val = in_df.loc[(in_df['method'] == method_name) & (in_df['preprocessing'] == preprocessing), 'value'].max()
-                    try:
-                        ttest_res = pg.pairwise_ttests(dv='value', between='method_compare', alternative='greater', effsize='cohen', parametric=False, padjust='bonf', data=in_df)
-                        results['effect_size'].append(float(ttest_res['cohen'][0]))
-                        results['best'].append(best_val)
-                        results['p'].append(float(ttest_res['p-unc'][0]))
-                        results['cluster_alg'].append(cluster_alg)
-                        results['U-val'].append(float(ttest_res['U-val'][0]))
-                        results['method'].append(method_name)
-                        results['full_method'].append(full_method_name)
-                        results['preprocessing'].append(preprocessing.replace(',','\n'))
-                        results['resolution'].append(resolution_value)
-                        results['res_name'].append(res)
-                        results['distance'].append(distance)
-                        results['n_strata'].append(n_strata)
-                        results['results_dir'].append(os.path.join(results_dir, dataset_name, res, method))
+                    # try:
+                    #     ttest_res = pg.pairwise_ttests(dv='value', between='method_compare', alternative='greater', effsize='cohen', parametric=False, padjust='bonf', data=in_df)
+                    #     results['effect_size'].append(float(ttest_res['cohen'][0]))
+                    #     results['best'].append(best_val)
+                    #     results['p'].append(float(ttest_res['p-unc'][0]))
+                    #     results['cluster_alg'].append(cluster_alg)
+                    #     results['U-val'].append(float(ttest_res['U-val'][0]))
+                    #     results['method'].append(method_name)
+                    #     results['full_method'].append(full_method_name)
+                    #     results['preprocessing'].append(preprocessing.replace(',','\n'))
+                    #     results['resolution'].append(resolution_value)
+                    #     results['res_name'].append(res)
+                    #     results['distance'].append(distance)
+                    #     results['n_strata'].append(n_strata)
+                    #     results['results_dir'].append(os.path.join(results_dir, dataset_name, res, method))
 
-                        n_other = np.sum(in_df['method_compare'] == 'B_other')
-                        n_method = len(in_df) - n_other
-                        power = pg.power_ttest2n(nx=n_other, ny=n_method, d=results['effect_size'][-1], power=None, alpha=0.05, alternative='greater')
-                        results['power'].append(power)
-                    except ValueError as e:
-                        print(e, cluster_alg)
-                    except KeyError as e:
-                        print(e, cluster_alg, method)
-                        break
+                    #     n_other = np.sum(in_df['method_compare'] == 'B_other')
+                    #     n_method = len(in_df) - n_other
+                    #     power = pg.power_ttest2n(nx=n_other, ny=n_method, d=results['effect_size'][-1], power=None, alpha=0.05, alternative='greater')
+                    #     results['power'].append(power)
+                    # except ValueError as e:
+                    #     print(e, cluster_alg)
+                    # except KeyError as e:
+                    #     print(e, cluster_alg, method)
+                    #     break
     results = pd.DataFrame.from_dict(results)
     agg_results = results.groupby(['full_method']).mean()
     print(agg_results)

@@ -537,7 +537,7 @@ def get_flattened_matrices(dataset, n_strata, preprocessing=None, agg_fn=None, c
     with Pool(8) as p:
         for cell_i, cell in enumerate(sorted(dataset.cell_list)):
             results.append(p.apply_async(get_processed_matrix, args=(dataset, cell, cell_i, preprocessing, chr_only)))
-        for res in results:
+        for res in tqdm(results):
             cell_i, cell, mat = res.get(timeout=1000)
             if chr_only is not None:
                 new_mat = []

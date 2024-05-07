@@ -30,9 +30,9 @@ def nostdout():
     sys.stdout = save_stdout
 
 def create_band_mat(x: np.ndarray, count: np.ndarray, diag: int, maxChromosomeSize: int) -> np.ndarray:
-    bandMat = np.zeros(maxChromosomeSize - diag + 1)
+    bandMat = np.zeros(max(maxChromosomeSize - diag + 1, np.max(x) + 1))
     bandMat[x] = count
-    return bandMat
+    return bandMat[:maxChromosomeSize - diag + 1]
 
 
 class Process(object):
@@ -149,7 +149,7 @@ def normalize(bandM, cellInfo, chromSelect, bandDist, nLatent = 64, batchFlag = 
     #cellSelect = [i for i, val in enumerate(bandM.sum(axis = 1)>0)]
     cellSelect = [i for i, val in enumerate(bandM.sum(axis = 1)>0) if val]
     if len(cellSelect) == 0:
-        print("No cells for this chromosome and distance.")
+        #print("No cells for this chromosome and distance.")
         normCount = None
         latentDF = pd.DataFrame(np.zeros((len(bandM), nLatent)), index = range(len(bandM)))
         
@@ -228,7 +228,7 @@ def train_3dvi(bandMax, chromList, resolution, inPath, outdir, cellSummary, geno
     if bandMax == "whole":
         used_diags = "whole"
     else:
-        used_diags_list = [i for i in range(1, int(bandMax) + 1)]
+        used_diags_list = [i for i in range(1, int(bandMax))]
     
     if chromList == "whole":
         used_chroms = "whole"

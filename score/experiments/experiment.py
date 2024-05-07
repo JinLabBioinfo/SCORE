@@ -7,11 +7,12 @@ import pandas as pd
 
 from rich.console import Console
 from munkres import Munkres
+from functools import partial
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.mixture import GaussianMixture
 from sklearn.decomposition import PCA
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, adjusted_mutual_info_score, \
-    homogeneity_score, completeness_score, v_measure_score, roc_auc_score
+    homogeneity_score, completeness_score, v_measure_score, roc_auc_score, silhouette_score
 
 console = Console()
 
@@ -64,6 +65,12 @@ class Experiment():
             self.other_args = other_args.__dict__
         if 'out' in self.other_args.keys():
             self.save_dir = self.other_args['out']
+        self.random_walk_iter = 1
+        if 'random_walk_iter' in self.other_args.keys():
+            self.random_walk_iter = self.other_args['random_walk_iter']
+        self.random_walk_ratio = 1.0
+        if 'random_walk_ratio' in self.other_args.keys():
+            self.random_walk_ratio = self.other_args['random_walk_ratio']
         self.skip_tsne = skip_tsne
         if name_suffix is None:
             self.out_dir = os.path.join(self.save_dir, data_generator.dataset_name, self.resolution_name, name)
@@ -84,7 +91,8 @@ class Experiment():
                         'homogeneity': homogeneity_score,
                         'completeness': completeness_score,
                         'v-measure': v_measure_score,
-                        'accuracy': self.cluster_acc}
+                        'accuracy': self.cluster_acc,
+                        'silhouette': partial(silhouette_score, metric='cosine')}  # use cosine distance for comparing embeddings of different volumes
         self.clustering_algs = {'k-means': KMeans,
                                 'agglomerative': AgglomerativeClustering,
                                 'gmm': GaussianMixture}
@@ -170,7 +178,7 @@ class Experiment():
         from scHiCTools import scHiCs
         loaded_data = scHiCs(network, reference_genome=self.chr_lengths, resolution=self.resolution, chromosomes='except YM',
                             keep_n_strata=self.n_strata, strata_offset=self.strata_offset, exclusive_strata=False, store_full_map=full_maps, format='npz',
-                            operations=self.operations)
+                            operations=self.operations, kwargs=dict(t=self.random_walk_iter, random_walk_ratio=self.random_walk_ratio))
         return loaded_data
 
     def save_color_config(self, color_matrix, cluster_names):
@@ -659,8 +667,12 @@ class Experiment():
 
                 for metric_name in self.metric_algs.keys():
                     metric_alg_key = self.get_metric_alg_key(metric_name, alg)
-                    self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], predicted_labels[known_cells])
-                    self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], pc_predicted_labels[known_cells])
+                    if metric_name == 'silhouette':
+                        self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], predicted_labels[known_cells])
+                        self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_predicted_labels[known_cells])
+                    else:
+                        self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], predicted_labels[known_cells])
+                        self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], pc_predicted_labels[known_cells])
             except ValueError as e:
                 print(e)
                 for metric_name in self.metric_algs.keys():
@@ -700,8 +712,12 @@ class Experiment():
                         celltype_pred_labels[alg] = predicted_labels
                         for metric_name in self.metric_algs.keys():
                             metric_alg_key = self.other_args['eval_name'] + '_' + self.get_metric_alg_key(metric_name, alg)
-                            self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_y, predicted_labels)
-                            self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_y, pc_predicted_labels)
+                            if metric_name == 'silhouette':
+                                self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_embedding, predicted_labels)
+                                self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_pc_embedding, pc_predicted_labels)
+                            else:
+                                self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_y, predicted_labels)
+                                self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_y, pc_predicted_labels)
                     except ValueError as e:
                         print(e)
                         for metric_name in self.metric_algs.keys():
@@ -751,8 +767,12 @@ class Experiment():
             pc_predicted_labels = predicted_labels
             for metric_name in self.metric_algs.keys():
                 metric_alg_key = self.get_metric_alg_key(metric_name, alg)
-                self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], predicted_labels[known_cells])
-                self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], pc_predicted_labels[known_cells])
+                if metric_name == 'silhouette':
+                    self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], predicted_labels[known_cells])
+                    self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_predicted_labels[known_cells])
+                else:
+                    self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], predicted_labels[known_cells])
+                    self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], pc_predicted_labels[known_cells])
                 self.metrics[metric_alg_key].append(self.current_metrics[metric_alg_key])
                 self.metrics_no_pc1[metric_alg_key].append(self.current_metrics_no_pc1[metric_alg_key])
 
@@ -779,8 +799,12 @@ class Experiment():
                     pc_predicted_labels = predicted_labels
                     for metric_name in self.metric_algs.keys():
                         metric_alg_key = self.other_args['eval_name'] + '_' + self.get_metric_alg_key(metric_name, alg)
-                        self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_y, predicted_labels)
-                        self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_y, pc_predicted_labels)
+                        if metric_name == 'silhouette':
+                            self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_embedding, predicted_labels)
+                            self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_pc_embedding, pc_predicted_labels)
+                        else:
+                            self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_y, predicted_labels)
+                            self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_y, pc_predicted_labels)
                         if metric_alg_key not in self.metrics.keys():
                             self.metrics[metric_alg_key] = []
                             self.metrics_no_pc1[metric_alg_key] = []
@@ -935,10 +959,17 @@ class Experiment():
                 self.evaluate_and_plot(embedding, start_time, plot=self.plot_viz if (outer_iter == 0) else False, iter='_%d' % outer_iter, cm=cm, valid=valid, log_wandb=log_wandb)
                 if log_wandb:
                     wandb.log({**self.current_metrics, **self.current_metrics_no_pc1, 'wall_time': self.metrics['wall_time'][-1]})
+            # remove nans from metrics
+            for metric_alg in self.metrics.keys():
+                self.metrics[metric_alg] = [x if not np.isnan(x) else 0 for x in self.metrics[metric_alg]]
+                try:
+                    self.metrics_no_pc1[metric_alg] = [x if not np.isnan(x) else 0 for x in self.metrics_no_pc1[metric_alg]]
+                except KeyError:
+                    pass
             self.save_metrics()
             
         for metric_alg in self.metrics.keys():
-            if 'ari' in metric_alg or 'acroc' in metric_alg:
+            if 'ari' in metric_alg or 'acroc' in metric_alg or 'silhouette' in metric_alg:
                 console.print(f"[green]{metric_alg}[/]: [bold blue]{np.mean(self.metrics[metric_alg]):.2f}[/] +/- [bold red]{np.std(self.metrics[metric_alg]):.2f}[/]")
         if log_wandb and self.plot_viz:
             wandb.log({"umap": wandb.Image(os.path.join(self.out_dir, 'celltype_plots/umap.png'))})

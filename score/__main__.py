@@ -204,6 +204,10 @@ def app():
             elif operations is not None:  # default preprocessing for certain methods
                 exp_name = method_name
                 exp_name += ':' + ','.join(operations)
+            if args.random_walk_iter != 1:
+                exp_name += f',{args.random_walk_iter}_iter'
+            if args.random_walk_ratio != 1.0:
+                exp_name += f',{args.random_walk_ratio}'
 
             # distance settings
             if len(strata_options) > 0:

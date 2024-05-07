@@ -40,6 +40,7 @@ def matrix_to_interaction(inputfolder, mapbed, resolution, outputdir):
 		bin_strs = True
 	if 'pfc' in inputfolder or 'kim' in inputfolder or 'ramani' in inputfolder or 'li2019' in inputfolder:
 		anchor_strs = True
+	bin_strs = True
 	os.makedirs(outputdir, exist_ok=True)
 
 	bintocoord = {}

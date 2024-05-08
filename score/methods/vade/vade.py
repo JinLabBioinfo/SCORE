@@ -12,7 +12,7 @@ import numpy as np
 import tensorflow_probability as tfp
 from tqdm import tqdm
 from tensorflow_probability import distributions as tfd
-from wandb.keras import WandbCallback
+from wandb.integration.keras import WandbCallback
 
 
 

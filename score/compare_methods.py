@@ -69,7 +69,11 @@ def compare_methods_wilcoxon(dataset_name, res_name, main_metric='ari', palette=
                             df['n_strata'].append(n_strata)
                             df['cluster_alg'].append(cluster_alg)
                             df['metric'].append(metric_name)
-                            df['value'].append(val / 60 if metric_name == 'wall' else val)
+                            try:
+                                df['value'].append(val / 60 if metric_name == 'wall' else val)
+                            except TypeError as e:
+                                print(e)
+                                df['value'].append(val)
                 except FileNotFoundError as e:
                     print(e)
 
@@ -224,53 +228,59 @@ def compare_methods_wilcoxon(dataset_name, res_name, main_metric='ari', palette=
         plt.close()
     except Exception as e:
         print(e)
-            
-    g = sns.catplot(data=results, x='method', y='effect_size', hue='cluster_alg', kind='bar', palette=palette,
-                    aspect=3, order=method_order, legend_out=True)
-    ax = g.ax
-    plt.axhline(0, linestyle='--', c='k')
-    plt.xticks(rotation=90)
-    for rect, is_significant in zip(ax.patches, significant_bars):
-        if is_significant:
+    try:
+        g = sns.catplot(data=results, x='method', y='effect_size', hue='cluster_alg', kind='bar', palette=palette,
+                        aspect=3, order=method_order, legend_out=True)
+        ax = g.ax
+        plt.axhline(0, linestyle='--', c='k')
+        plt.xticks(rotation=90)
+        for rect, is_significant in zip(ax.patches, significant_bars):
+            if is_significant:
+                height = rect.get_height()
+                ax.text(rect.get_x() + rect.get_width() / 2., height + height * 0.2,
+                        '*', fontsize='xx-large', fontweight='extra bold',
+                        ha='center', va='bottom', color='k')
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, 'compare_to_all_effect_size_hue_alg.png'))
+        plt.savefig(os.path.join(out_dir, 'compare_to_all_effect_size_hue_alg.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
+    try:
+        g = sns.catplot(data=results, x='method', y='p', kind='bar', hue='preprocessing', 
+                        hue_order=preprocessing_order, aspect=3, order=method_order, palette=palette, legend_out=True)
+        plt.axhline(0, linestyle='--', c='k')
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, 'compare_to_all_p_hue_preprocessing.png'))
+        plt.savefig(os.path.join(out_dir, 'compare_to_all_p_hue_preprocessing.pdf'))
+
+        ax = g.ax
+        significant_bars = []
+        for rect in ax.patches:
             height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width() / 2., height + height * 0.2,
-                    '*', fontsize='xx-large', fontweight='extra bold',
-                    ha='center', va='bottom', color='k')
-    plt.tight_layout()
-    plt.savefig(os.path.join(out_dir, 'compare_to_all_effect_size_hue_alg.png'))
-    plt.savefig(os.path.join(out_dir, 'compare_to_all_effect_size_hue_alg.pdf'))
-    plt.close()
-
-    g = sns.catplot(data=results, x='method', y='p', kind='bar', hue='preprocessing', 
-                    hue_order=preprocessing_order, aspect=3, order=method_order, palette=palette, legend_out=True)
-    plt.axhline(0, linestyle='--', c='k')
-    plt.xticks(rotation=90)
-    plt.tight_layout()
-    plt.savefig(os.path.join(out_dir, 'compare_to_all_p_hue_preprocessing.png'))
-    plt.savefig(os.path.join(out_dir, 'compare_to_all_p_hue_preprocessing.pdf'))
-
-    ax = g.ax
-    significant_bars = []
-    for rect in ax.patches:
-        height = rect.get_height()
-        significant_bars.append(height <= alpha)
-    plt.close()            
-
-    g = sns.catplot(data=results, x='method', y='effect_size', hue='preprocessing', palette=palette,
-                    hue_order=preprocessing_order, kind='bar', aspect=3, order=method_order, legend_out=True)
-    ax = g.ax
-    plt.axhline(0, linestyle='--', c='k')
-    plt.xticks(rotation=90)
-    for rect, is_significant in zip(ax.patches, significant_bars):
-        if is_significant:
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width() / 2., height + height * 0.2,
-                    '*', fontsize='xx-large', fontweight='extra bold',
-                    ha='center', va='bottom', color='k')
-    plt.tight_layout()
-    plt.savefig(os.path.join(out_dir, 'compare_to_all_effect_size_hue_preprocessing.png'))
-    plt.savefig(os.path.join(out_dir, 'compare_to_all_effect_size_hue_preprocessing.pdf'))
-    plt.close()
+            significant_bars.append(height <= alpha)
+        plt.close() 
+    except Exception as e:
+        print(e)           
+    try:
+        g = sns.catplot(data=results, x='method', y='effect_size', hue='preprocessing', palette=palette,
+                        hue_order=preprocessing_order, kind='bar', aspect=3, order=method_order, legend_out=True)
+        ax = g.ax
+        plt.axhline(0, linestyle='--', c='k')
+        plt.xticks(rotation=90)
+        for rect, is_significant in zip(ax.patches, significant_bars):
+            if is_significant:
+                height = rect.get_height()
+                ax.text(rect.get_x() + rect.get_width() / 2., height + height * 0.2,
+                        '*', fontsize='xx-large', fontweight='extra bold',
+                        ha='center', va='bottom', color='k')
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, 'compare_to_all_effect_size_hue_preprocessing.png'))
+        plt.savefig(os.path.join(out_dir, 'compare_to_all_effect_size_hue_preprocessing.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
 
     df.rename(columns={'value': main_metric}, inplace=True)
     metric_mask = df['metric'] == main_metric
@@ -279,58 +289,72 @@ def compare_methods_wilcoxon(dataset_name, res_name, main_metric='ari', palette=
     df['cluster_alg'] = df['cluster_alg'].apply(shorten_names)
 
     print(df)
-
-    sns.catplot(data=df[df['metric'] == 'wall'], x='cluster_alg', y=main_metric, hue='full_method', 
-                kind='box', palette=palette, legend_out=True)
-    plt.ylabel('wall time (s)')
-    plt.savefig(os.path.join(out_dir, 'walltime.png'))
-    plt.savefig(os.path.join(out_dir, 'walltime.pdf'))
-    plt.close()
-
-    sns.catplot(data=df[metric_mask & cluster_mask], x='cluster_alg', y=main_metric, kind='box', 
-                aspect=3, palette=palette)
-    plt.tight_layout()
-    plt.savefig(os.path.join(out_dir, 'accuracy_box_alg.png'))
-    plt.savefig(os.path.join(out_dir, 'accuracy_box_alg.pdf'))
-    plt.close()
-
-    sns.lineplot(data=df[metric_mask & cluster_mask], x='distance', y=main_metric, hue='method',
-                palette=palette)
-    plt.xticks(rotation=90)
-    plt.tight_layout()
-    plt.savefig(os.path.join(out_dir, 'accuracy_distance.png'))
-    plt.savefig(os.path.join(out_dir, 'accuracy_distance.pdf'))
-    plt.close()
-
-    sns.lineplot(data=df[metric_mask & cluster_mask], x='resolution', y=main_metric, hue='method',
-                palette=palette)
-    plt.xticks(rotation=90)
-    plt.tight_layout()
-    plt.savefig(os.path.join(out_dir, 'accuracy_resolution.png'))
-    plt.savefig(os.path.join(out_dir, 'accuracy_resolution.pdf'))
-    plt.close()
-
-    sns.catplot(data=df[metric_mask & cluster_mask], x='full_method', y=main_metric, kind='box', order=full_method_order,
-                aspect=2, palette=palette)
-    plt.xticks(rotation=90)
-    plt.tight_layout()
-    plt.savefig(os.path.join(out_dir, 'accuracy_box_method.png'))
-    plt.savefig(os.path.join(out_dir, 'accuracy_box_method.pdf'))
-    plt.close()
-
-    sns.catplot(data=df[metric_mask & cluster_mask], x='preprocessing', y=main_metric, kind='box', order=preprocessing_order,
-                aspect=2, palette=palette)
-    plt.tight_layout()
-    plt.xticks(rotation=90)
-    plt.savefig(os.path.join(out_dir, 'accuracy_box_preprocessing.png'))
-    plt.savefig(os.path.join(out_dir, 'accuracy_box_preprocessing.pdf'))
-    plt.close()
-
-    sns.catplot(data=df[metric_mask & cluster_mask], x='method', y=main_metric, hue='preprocessing', order=method_order, hue_order=preprocessing_order, palette=palette,
-                aspect=3,  kind='box', legend_out=True)
-    plt.savefig(os.path.join(out_dir, 'accuracy_box_hue_by_preprocessing.png'))
-    plt.savefig(os.path.join(out_dir, 'accuracy_box_hue_by_preprocessing.pdf'))
-    plt.close()
+    try:
+        sns.catplot(data=df[df['metric'] == 'wall'], x='cluster_alg', y=main_metric, hue='full_method', 
+                    kind='box', palette=palette, legend_out=True)
+        plt.ylabel('wall time (s)')
+        plt.savefig(os.path.join(out_dir, 'walltime.png'))
+        plt.savefig(os.path.join(out_dir, 'walltime.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
+    try:
+        sns.catplot(data=df[metric_mask & cluster_mask], x='cluster_alg', y=main_metric, kind='box', 
+                    aspect=3, palette=palette)
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, 'accuracy_box_alg.png'))
+        plt.savefig(os.path.join(out_dir, 'accuracy_box_alg.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
+    try:
+        sns.lineplot(data=df[metric_mask & cluster_mask], x='distance', y=main_metric, hue='method',
+                    palette=palette)
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, 'accuracy_distance.png'))
+        plt.savefig(os.path.join(out_dir, 'accuracy_distance.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
+    try:
+        sns.lineplot(data=df[metric_mask & cluster_mask], x='resolution', y=main_metric, hue='method',
+                    palette=palette)
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, 'accuracy_resolution.png'))
+        plt.savefig(os.path.join(out_dir, 'accuracy_resolution.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
+    try:
+        sns.catplot(data=df[metric_mask & cluster_mask], x='full_method', y=main_metric, kind='box', order=full_method_order,
+                    aspect=2, palette=palette)
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, 'accuracy_box_method.png'))
+        plt.savefig(os.path.join(out_dir, 'accuracy_box_method.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
+    try:
+        sns.catplot(data=df[metric_mask & cluster_mask], x='preprocessing', y=main_metric, kind='box', order=preprocessing_order,
+                    aspect=2, palette=palette)
+        plt.tight_layout()
+        plt.xticks(rotation=90)
+        plt.savefig(os.path.join(out_dir, 'accuracy_box_preprocessing.png'))
+        plt.savefig(os.path.join(out_dir, 'accuracy_box_preprocessing.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
+    try:
+        sns.catplot(data=df[metric_mask & cluster_mask], x='method', y=main_metric, hue='preprocessing', order=method_order, hue_order=preprocessing_order, palette=palette,
+                    aspect=3,  kind='box', legend_out=True)
+        plt.savefig(os.path.join(out_dir, 'accuracy_box_hue_by_preprocessing.png'))
+        plt.savefig(os.path.join(out_dir, 'accuracy_box_hue_by_preprocessing.pdf'))
+        plt.close()
+    except Exception as e:
+        print(e)
 
     full_method_order = agg_results.index[agg_results['effect_size'].argsort()]
     full_method_order = [s.split('@')[0] for s in full_method_order]

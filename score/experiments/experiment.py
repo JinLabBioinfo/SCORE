@@ -668,8 +668,14 @@ class Experiment():
                 for metric_name in self.metric_algs.keys():
                     metric_alg_key = self.get_metric_alg_key(metric_name, alg)
                     if metric_name == 'silhouette':
-                        self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], predicted_labels[known_cells])
-                        self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_predicted_labels[known_cells])
+                        try:
+                            self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], predicted_labels[known_cells])
+                        except ValueError:
+                            self.current_metrics[metric_alg_key] = 0
+                        try:
+                            self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_predicted_labels[known_cells])
+                        except ValueError:
+                            self.current_metrics_no_pc1[metric_alg_key] = 0
                     else:
                         self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], predicted_labels[known_cells])
                         self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], pc_predicted_labels[known_cells])
@@ -713,8 +719,14 @@ class Experiment():
                         for metric_name in self.metric_algs.keys():
                             metric_alg_key = self.other_args['eval_name'] + '_' + self.get_metric_alg_key(metric_name, alg)
                             if metric_name == 'silhouette':
-                                self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_embedding, predicted_labels)
-                                self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_pc_embedding, pc_predicted_labels)
+                                try:
+                                    self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_embedding, predicted_labels)
+                                except ValueError:
+                                    self.current_metrics[metric_alg_key] = 0
+                                try:
+                                    self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_pc_embedding, pc_predicted_labels)
+                                except ValueError:
+                                    self.current_metrics_no_pc1[metric_alg_key] = 0
                             else:
                                 self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_y, predicted_labels)
                                 self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_y, pc_predicted_labels)
@@ -768,8 +780,14 @@ class Experiment():
             for metric_name in self.metric_algs.keys():
                 metric_alg_key = self.get_metric_alg_key(metric_name, alg)
                 if metric_name == 'silhouette':
-                    self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], predicted_labels[known_cells])
-                    self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_predicted_labels[known_cells])
+                    try:
+                        self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], predicted_labels[known_cells])
+                    except ValueError:
+                        self.current_metrics[metric_alg_key] = 0
+                    try:
+                        self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_predicted_labels[known_cells])
+                    except ValueError:
+                        self.current_metrics_no_pc1[metric_alg_key] = 0
                 else:
                     self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], predicted_labels[known_cells])
                     self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], pc_predicted_labels[known_cells])
@@ -961,16 +979,19 @@ class Experiment():
                     wandb.log({**self.current_metrics, **self.current_metrics_no_pc1, 'wall_time': self.metrics['wall_time'][-1]})
             # remove nans from metrics
             for metric_alg in self.metrics.keys():
-                self.metrics[metric_alg] = [x if not np.isnan(x) else 0 for x in self.metrics[metric_alg]]
+                self.metrics[metric_alg] = [str(x) if not np.isnan(x) else str(0) for x in self.metrics[metric_alg]]
                 try:
-                    self.metrics_no_pc1[metric_alg] = [x if not np.isnan(x) else 0 for x in self.metrics_no_pc1[metric_alg]]
+                    self.metrics_no_pc1[metric_alg] = [str(x) if not np.isnan(x) else str(0) for x in self.metrics_no_pc1[metric_alg]]
                 except KeyError:
                     pass
             self.save_metrics()
             
         for metric_alg in self.metrics.keys():
             if 'ari' in metric_alg or 'acroc' in metric_alg or 'silhouette' in metric_alg:
-                console.print(f"[green]{metric_alg}[/]: [bold blue]{np.mean(self.metrics[metric_alg]):.2f}[/] +/- [bold red]{np.std(self.metrics[metric_alg]):.2f}[/]")
+                try:
+                    console.print(f"[green]{metric_alg}[/]: [bold blue]{np.mean(self.metrics[metric_alg]):.2f}[/] +/- [bold red]{np.std(self.metrics[metric_alg]):.2f}[/]")
+                except Exception as e:
+                    pass
         if log_wandb and self.plot_viz:
             wandb.log({"umap": wandb.Image(os.path.join(self.out_dir, 'celltype_plots/umap.png'))})
             wandb.log({"tsne": wandb.Image(os.path.join(self.out_dir, 'celltype_plots/tsne.png'))})

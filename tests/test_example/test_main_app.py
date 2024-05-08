@@ -1,4 +1,5 @@
 import os
+os.environ["CUDA_VISIBLE_DEVICES"]=""
 import sys
 import pytest
 from pathlib import Path
@@ -45,6 +46,24 @@ def test_compare():
 def test_higashi():
     test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
                  '--embedding_algs', 'higashi', '--no_viz', '--higashi_dryrun']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_fast_higashi():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'fast_higashi', '--no_viz', '--higashi_dryrun']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_snapatac():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'snapatac', '--no_viz']
     os.chdir(Path(__file__).parent)
     with patch.object(sys, 'argv', test_args):
         app()

@@ -43,6 +43,60 @@ def test_compare():
     assert True
 
 
+def test_schicluster():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'scHiCluster', '--no_viz']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_innerproduct():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'InnerProduct', '--no_viz']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_cistopic():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'cisTopic', '--no_viz']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_pca():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', '1d_pca', '--no_viz']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_lsi():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', '1d_lsi', '--no_viz']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_insulation():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'insulation', '--no_viz']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
 def test_higashi():
     test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
                  '--embedding_algs', 'higashi', '--no_viz', '--higashi_dryrun']

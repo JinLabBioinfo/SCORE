@@ -35,6 +35,14 @@ def test_summary():
     assert True
 
 
+def test_bin():
+    test_args = ['app.py', 'bin', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
 def test_merge():
     test_args = ['app.py', 'merge', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json']
     os.chdir(Path(__file__).parent)

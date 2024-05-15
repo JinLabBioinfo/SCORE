@@ -353,6 +353,12 @@ def app():
                                     other_args=args)
                 exp.run(load=load_results, log_wandb=args.wandb,
                         start_time=start_time, wandb_config=wandb_config)
+                # remove insulation files if no cache
+                if args.no_cache:
+                    try:
+                        os.remove(f'data/dataset_summaries/{dataset.dataset_name}_insulation_{dataset.res_name}.npy')
+                    except FileNotFoundError:
+                        pass
             
             elif method_name == '1d_pca':
                 if load_results:

@@ -979,10 +979,17 @@ class Experiment():
                     wandb.log({**self.current_metrics, **self.current_metrics_no_pc1, 'wall_time': self.metrics['wall_time'][-1]})
             # remove nans from metrics
             for metric_alg in self.metrics.keys():
-                self.metrics[metric_alg] = [str(x) if not np.isnan(x) else str(0) for x in self.metrics[metric_alg]]
+                try:
+                    self.metrics[metric_alg] = [str(x) if not np.isnan(x) else str(0) for x in self.metrics[metric_alg]]
+                except TypeError:
+                    self.metrics[metric_alg] = [str(x) for x in self.metrics[metric_alg]]
+                    pass
                 try:
                     self.metrics_no_pc1[metric_alg] = [str(x) if not np.isnan(x) else str(0) for x in self.metrics_no_pc1[metric_alg]]
                 except KeyError:
+                    pass
+                except TypeError:
+                    self.metrics_no_pc1[metric_alg] = [str(x) for x in self.metrics_no_pc1[metric_alg]]
                     pass
             self.save_metrics()
             

@@ -45,7 +45,7 @@ def test_compare():
 
 def test_schicluster():
     test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
-                 '--embedding_algs', 'scHiCluster', '--no_viz']
+                 '--embedding_algs', 'scHiCluster', '--no_viz', '--eval_celltypes', ['ZygM', 'ZygP']]
     os.chdir(Path(__file__).parent)
     with patch.object(sys, 'argv', test_args):
         app()
@@ -55,6 +55,33 @@ def test_schicluster():
 def test_innerproduct():
     test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
                  '--embedding_algs', 'InnerProduct', '--no_viz']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_load():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'InnerProduct', '--no_viz', '--load_results']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_acroc():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'InnerProduct', '--no_viz', '--continuous']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_innerproduct_viz():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'InnerProduct', '--no_viz', '--viz_innerproduct']
     os.chdir(Path(__file__).parent)
     with patch.object(sys, 'argv', test_args):
         app()
@@ -100,6 +127,15 @@ def test_insulation():
 def test_higashi():
     test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
                  '--embedding_algs', 'higashi', '--no_viz', '--higashi_dryrun']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
+def test_higashi_rw():
+    test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
+                 '--embedding_algs', 'higashi+vc_sqrt_norm,random_walk', '--no_viz', '--higashi_dryrun']
     os.chdir(Path(__file__).parent)
     with patch.object(sys, 'argv', test_args):
         app()

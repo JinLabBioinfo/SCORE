@@ -51,7 +51,8 @@ def pca_2d_exp(x, y, features, dataset, args, exp_name=None, operations=None, lo
         chr_pcs = []
         chr_list = list(pd.unique(dataset.anchor_list['chr']))
         for chr_name in tqdm(chr_list):
-            x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, chr_only=chr_name)
+            x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, chr_only=chr_name, 
+                                       rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
             if operations is None:  # using raw count data
                 hic = ad.AnnData(x, dtype='int32')
             else:  # using whatever values are passed in (preprocessed data like normalized probs)
@@ -84,7 +85,7 @@ def lsi_2d_exp(x, y, features, dataset, args, operations=None, load_results=Fals
     if load_results:
         x = None 
     else:
-        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations)
+        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
     exp_name = '2d_lsi'
     if operations is not None:
         exp_name += ':' + ','.join(operations)
@@ -96,7 +97,7 @@ def snap_atac_exp(x, y, features, dataset, args, operations=None, load_results=F
     if load_results:
         x = None 
     else:
-        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations)
+        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
     exp_name = 'snapatac'
     if operations is not None:
         exp_name += ':' + ','.join(operations)
@@ -110,7 +111,7 @@ def cisTopic_exp(x, y, features, dataset, args, exp_name=None, operations=None, 
     if load_results:
         x = None 
     else:
-        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations)
+        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
         #x = np.array([x.A.ravel().squeeze() for x in x])
     if exp_name is None:
         exp_name = 'cistopic'
@@ -128,7 +129,7 @@ def scVI_exp(x, y, features, dataset, args, operations, load_results=False, wand
         if one_dim:
             x = dataset.write_cell_bin_matrix(max_dist=int(args.n_strata))
         else:
-            x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations)
+            x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
     exp_name = 'scvi'
     if not one_dim:
         exp_name += '_2d'
@@ -146,7 +147,7 @@ def peakVI_exp(x, y, features, dataset, args,load_results=False, wandb_config=No
         if one_dim:
             x = dataset.write_cell_bin_matrix(max_dist=int(args.n_strata))
         else:
-            x = get_flattened_matrices(dataset, int(args.n_strata))
+            x = get_flattened_matrices(dataset, int(args.n_strata), rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
     name = 'peakvi'
     if not one_dim:
         name += '_2d'

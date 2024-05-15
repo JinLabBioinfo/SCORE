@@ -90,6 +90,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--load_results', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--load_cells', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--no_viz', action='store_true')
+    parser.add_argument('--viz_innerproduct', action='store_true')
     parser.add_argument('--resolution', default='', type=str)
     parser.add_argument('--file_suffix', default='', type=str, help=argparse.SUPPRESS)
     parser.add_argument('--gene_ref', type=str, default='data/hg19_genes_scGAD', help=argparse.SUPPRESS)

@@ -40,6 +40,13 @@ formatting: codestyle
 #* Linting
 .PHONY: test
 test:
+	rm -f -r tests/test_example/schictools_data/
+	rm -f -r tests/test_example/schic-topic-model/
+	rm -f -r tests/test_example/data/higashi_data/
+	rm -f -r tests/test_example/data/inadequate_cells/
+	rm -f -r tests/test_example/data/sparse_matrices/
+	rm -f -r tests/test_example/threeDVI/
+	rm -f -r tests/test_example/vade/
 	PYTHONPATH=$(PYTHONPATH) poetry run pytest -c pyproject.toml --cov-report=html --cov=score tests/
 	poetry run coverage-badge -o assets/images/coverage.svg -f
 

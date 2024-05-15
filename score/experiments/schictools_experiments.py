@@ -28,8 +28,10 @@ class ScHiCToolsExperiment(Experiment):
         self.val_loaded_data = self.val_schictools_data
         self.method = method
         self.embedding_method = embedding_method
+        if 'viz_innerproduct' in self.other_args.keys():
+            self.viz_dist_hist = True
 
-    def get_embedding(self, iter_n=0, viz_dist_hist=False):
+    def get_embedding(self, iter_n=0):
         if 'schicluster' in self.name.lower():
             full_maps = True 
         else:
@@ -45,7 +47,7 @@ class ScHiCToolsExperiment(Experiment):
             else:
                 self.loaded_data = self.load_schictools_data(self.network, full_maps=full_maps)
 
-        if viz_dist_hist:
+        if self.viz_dist_hist:
             import anndata as ad
             import scanpy as sc
             import numpy as np

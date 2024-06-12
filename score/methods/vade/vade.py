@@ -169,6 +169,15 @@ def train_vade(features, dataset, experiment, run_i, args, preprocessing=None, l
             print('Not enough memory to save')
 
         print(x_train.shape)
+        if 'idf' in preprocessing:
+            from sklearn.preprocessing import normalize
+            x_flat = x_train.reshape(x_train.shape[0], -1)
+            idf = np.log(x_flat.shape[0] / (np.sum(x_flat > 0, axis=0) + 1))
+            x_flat = x_flat * idf
+            x_flat = np.nan_to_num(x_flat)
+            x_flat = normalize(x_flat, norm="l2")
+            x_train = x_flat.reshape(x_train.shape)
+            args.gaussian_output = True  # model normalized idf weights using sigmoid
 
         y = np.array(y)
         depths = np.array(depths)

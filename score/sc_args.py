@@ -83,6 +83,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--wandb', action='store_true')
     parser.add_argument('--continuous', action='store_true', help='data represents continuous rather than discrete cell states (e.g cell cycle)')
     parser.add_argument('--filter_mitotic', action='store_true')
+    parser.add_argument('--use_xy', action='store_true')
     parser.add_argument('--mitotic_max', default=0.017, type=float, help=argparse.SUPPRESS)
     parser.add_argument('--mitotic_min', default=0.002, type=float, help=argparse.SUPPRESS)
     parser.add_argument('--ignore_filter', action='store_true')

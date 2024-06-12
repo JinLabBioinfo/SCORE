@@ -6,6 +6,8 @@ import networkx as nx
 
 from tqdm import tqdm
 from multiprocessing import Pool
+from sklearn.preprocessing import normalize
+from scipy.linalg import block_diag
 from scipy.sparse import issparse, coo_matrix, csr_matrix
 from matplotlib.colors import PowerNorm
 from score.utils.utils import anchor_to_locus, anchor_list_to_dict, sorted_nicely
@@ -45,6 +47,7 @@ def OE_norm(mat):
 
 
 def KR_norm(mat, maximum_error_rate=1e-3):
+    # https://github.com/liu-bioinfo-lab/scHiCTools/blob/3d3379c2af82f0d8d17f66fa1e61a35a0f30074a/scHiCTools/load/processing_utils.py#L130
     bias = np.mean(mat) * maximum_error_rate
     # Remove all-zero rows and columns
     sm = np.sum(mat, axis=0)
@@ -55,13 +58,9 @@ def KR_norm(mat, maximum_error_rate=1e-3):
     new_mat = np.delete(mat, zeros, axis=0)
     new_mat = np.delete(new_mat, zeros, axis=1)
 
-    # Iteration
     x = np.random.random(size=len(new_mat))
     k = 0
     while True:
-        # I forgot where I found this iteration formula
-        # But it does work...
-        # I'll check later...
         k += 1
         aa = np.diag(x).dot(new_mat) + np.diag(new_mat.dot(x))
         try:
@@ -133,19 +132,45 @@ def lsi(adata, n_components=20, use_highly_variable=None, **kwargs):
     # from https://scglue.readthedocs.io/en/latest/_modules/scglue/data.html#lsi
     from sklearn.utils.extmath import randomized_svd
     from sklearn.preprocessing import normalize
+    from sklearn.decomposition import PCA
     if "random_state" not in kwargs:
         kwargs["random_state"] = 0  # Keep deterministic as the default behavior
     if use_highly_variable is None:
         use_highly_variable = "highly_variable" in adata.var
     adata_use = adata[:, adata.var["highly_variable"]] if use_highly_variable else adata
-    X = tfidf(adata_use.X)
+    #X = tfidf(adata_use.X)
+    #idf = np.log(X.shape[0] / np.sum(X > 0, axis=0))
+    #X = X.multiply(idf)
     X = np.nan_to_num(X)
-    X_norm = normalize(X, norm="l1")
-    X_norm = np.log1p(X_norm * 1e4)
-    X_lsi = randomized_svd(X_norm, n_components, **kwargs)[0]
-    X_lsi -= X_lsi.mean(axis=1, keepdims=True)
-    X_lsi /= X_lsi.std(axis=1, ddof=1, keepdims=True)
+    X_norm = normalize(X, norm="l2")
+    X_lsi = PCA(n_components=n_components).fit_transform(X_norm)
     adata.obsm["X_lsi"] = X_lsi
+
+
+def idf_inner_product(adata, n_components=32, use_highly_variable=None):
+    from sklearn.manifold import MDS
+    from sklearn.preprocessing import normalize
+    from sklearn.decomposition import PCA
+    if use_highly_variable is None:
+        use_highly_variable = "highly_variable" in adata.var
+    adata_use = adata[:, adata.var["highly_variable"]] if use_highly_variable else adata
+    X = np.array(adata_use.X)
+    idf = np.log(X.shape[0] / (np.sum(X > 0, axis=0) + 1))
+    X = X * idf
+    X = np.nan_to_num(X)
+    X_norm = normalize(X, norm="l2")
+    # inner = X_norm.dot(X_norm.T)
+    # inner[inner > 1] = 1
+    # inner[inner < -1] = -1
+    # distance_mat = np.sqrt(2 - 2 * inner)
+    # D = np.diag((sim - np.eye(sim.shape[0])) * np.ones_like(sim))
+    # W = sim / np.sqrt(D[:, None] * D[None, :])
+    # W = np.nan_to_num(W)
+    # W
+    #z = MDS(n_components=n_components, dissimilarity='precomputed').fit_transform(distance_mat)
+    z = PCA(n_components=n_components).fit_transform(X_norm)
+    #z = MDS(n_components=n_components).fit_transform(X_norm)
+    adata.obsm["X_mds"] = z
 
 
 def network_centrality(mat):
@@ -244,78 +269,99 @@ def quantile_cutoff(mat, q=0.99):
     return mat
 
 
-def get_processed_matrix(dataset, cell, cell_i, preprocessing, chr_only=None):
-    from scipy.linalg import block_diag
-    loops = dataset.get_cell_pixels(cell)
+def get_processed_matrix(dataset, cell, cell_i, preprocessing, chr_only=None, rw_iter=1, rw_ratio=1.0):
+    #loops = dataset.get_cell_pixels(cell)
     chr_list = list(pd.unique(dataset.anchor_list['chr']))
     chr_mats = []
     for chr_name in chr_list:
         if chr_only is not None and chr_name != chr_only:
             continue
-        chr_anchors = dataset.anchor_list.loc[dataset.anchor_list['chr'] == chr_name]
-        chr_anchors.reset_index(drop=True, inplace=True)
-        chr_anchor_dict = anchor_list_to_dict(chr_anchors['anchor'].values)
-        chr_contacts = loops.loc[loops['a1'].isin(chr_anchors['anchor']) & loops['a2'].isin(chr_anchors['anchor'])].copy()
-        if len(chr_contacts) > 0:
-            chr_contacts['chr1'] = chr_name
-            chr_contacts['chr2'] = chr_name
+        # chr_anchors = dataset.anchor_list.loc[dataset.anchor_list['chr'] == chr_name]
+        # chr_anchors.reset_index(drop=True, inplace=True)
+        # chr_anchor_dict = anchor_list_to_dict(chr_anchors['anchor'].values)
+        # chr_contacts = loops.loc[loops['a1'].isin(chr_anchors['anchor']) & loops['a2'].isin(chr_anchors['anchor'])].copy()
+        # if len(chr_contacts) > 0:
+        #     chr_contacts['chr1'] = chr_name
+        #     chr_contacts['chr2'] = chr_name
 
-            rows = np.vectorize(anchor_to_locus(chr_anchor_dict))(
-                chr_contacts['a1'].values)  # convert anchor names to row indices
-            cols = np.vectorize(anchor_to_locus(chr_anchor_dict))(
-                chr_contacts['a2'].values)  # convert anchor names to column indices
-            matrix = coo_matrix((chr_contacts['obs'], (rows, cols)),
-                        shape=(len(chr_anchors), len(chr_anchors)))
+        #     rows = np.vectorize(anchor_to_locus(chr_anchor_dict))(
+        #         chr_contacts['a1'].values)  # convert anchor names to row indices
+        #     cols = np.vectorize(anchor_to_locus(chr_anchor_dict))(
+        #         chr_contacts['a2'].values)  # convert anchor names to column indices
+        #     matrix = coo_matrix((chr_contacts['obs'], (rows, cols)),
+        #                 shape=(len(chr_anchors), len(chr_anchors)))
             
-            mat = matrix.A
-            if preprocessing is not None:
-                for op in preprocessing:
-                    if op.lower() == 'convolution':
-                        mat = convolution(mat)
-                    elif op.lower() == 'random_walk':
-                        mat = random_walk(mat)
-                    elif op.lower() == 'vc_sqrt_norm' or op.lower() == 'vcsqrt_norm':
-                        mat = VC_SQRT_norm(mat)
-                    elif op.lower() == 'oe_norm':
-                        mat = OE_norm(mat)
-                    elif op.lower() == 'kr_norm':
-                        mat = KR_norm(mat)
-                    elif op.lower() == 'network_enhance':
-                        mat = network_enhance(mat)
-                    elif op.lower() == 'laplacian':
-                        mat = graph_laplacian(mat)
-                    elif op.lower() == 'modularity':
-                        mat = graph_modularity(mat)
-                    elif op.lower() == 'google':
-                        mat = graph_google(mat)
-                    elif op.lower() == 'network_centrality':
-                        mat = network_centrality(mat)
-                    elif op.lower() == 'resource_allocation':
-                        mat = graph_resource_allocation(mat)
-                    elif op.lower() == 'jaccard':
-                        mat = graph_jaccard(mat)
-                    elif op.lower() == 'adamic_adar':
-                        mat = graph_adamic_adar(mat)
-                    elif op.lower() == 'preferential_attachment':
-                        mat = graph_preferential_attachment(mat)
-                    elif op.lower() == 'coloring':
-                        mat = graph_coloring(mat)
-                    elif op.lower() == 'edge_cut':
-                        mat = graph_min_edge_cut(mat)
-                    elif op.lower() == 'mst':
-                        mat = graph_mst(mat)
-                    elif 'quantile' in op.lower():
-                        if '_' not in op:
-                            q = 0.99
-                        else:
-                            q = float(op.split('_')[1])
-                        mat = quantile_cutoff(mat, q=q)
+        #     mat = matrix.A
+        try:
+            c = cooler.Cooler(f"{dataset.scool_file}::/cells/{cell}")
+        except Exception as e:
+            try:
+                new_cellname = cell.replace(dataset.res_name, f"comb.{dataset.res_name}")
+                c = cooler.Cooler(f"{dataset.scool_file}::/cells/{new_cellname}")
+            except Exception as e:
+                try:
+                    new_cellname = cell.replace(dataset.res_name, f"3C.{dataset.res_name}")
+                    c = cooler.Cooler(f"{dataset.scool_file}::/cells/{new_cellname}")
+                except Exception as e:
+                    print(e)
+                    pass
+        try:
+            mat = c.matrix(balance=False).fetch(chr_name)
+        except IndexError as e:  # no interactions in this chrom
+            chr_size = len(c.bins().fetch(chr_name))
+            mat = np.zeros((chr_size, chr_size))
+        if preprocessing is not None:
+            for op in preprocessing:
+                if op.lower() == 'convolution':
+                    mat = convolution(mat)
+                elif op.lower() == 'random_walk':
+                    mat = random_walk(mat, t=int(rw_iter), random_walk_ratio=float(rw_ratio))
+                elif op.lower() == 'vc_sqrt_norm' or op.lower() == 'vcsqrt_norm':
+                    mat = VC_SQRT_norm(mat)
+                elif op.lower() == 'oe_norm':
+                    mat = OE_norm(mat)
+                elif op.lower() == 'kr_norm':
+                    mat = KR_norm(mat)
+                elif op.lower() == 'network_enhance':
+                    mat = network_enhance(mat)
+                elif op.lower() == 'laplacian':
+                    mat = graph_laplacian(mat)
+                elif op.lower() == 'modularity':
+                    mat = graph_modularity(mat)
+                elif op.lower() == 'google':
+                    mat = graph_google(mat)
+                elif op.lower() == 'network_centrality':
+                    mat = network_centrality(mat)
+                elif op.lower() == 'resource_allocation':
+                    mat = graph_resource_allocation(mat)
+                elif op.lower() == 'jaccard':
+                    mat = graph_jaccard(mat)
+                elif op.lower() == 'adamic_adar':
+                    mat = graph_adamic_adar(mat)
+                elif op.lower() == 'preferential_attachment':
+                    mat = graph_preferential_attachment(mat)
+                elif op.lower() == 'coloring':
+                    mat = graph_coloring(mat)
+                elif op.lower() == 'edge_cut':
+                    mat = graph_min_edge_cut(mat)
+                elif op.lower() == 'mst':
+                    mat = graph_mst(mat)
+                elif 'quantile' in op.lower():
+                    if '_' not in op:
+                        q = 0.99
                     else:
-                        print('Unrecognized preprocessing op', op)
-        else:
-            mat = np.zeros((len(chr_anchors), len(chr_anchors)))
+                        q = float(op.split('_')[1])
+                    mat = quantile_cutoff(mat, q=q)
+                elif 'idf' in op.lower():
+                    pass  # wait until all matrices are concatenated to do this
+                else:
+                    print('Unrecognized preprocessing op', op)
+        # else:
+        #     mat = np.zeros((len(chr_anchors), len(chr_anchors)))
+        
         chr_mats.append(mat)
     mat = csr_matrix(block_diag(*chr_mats))
+    
     return cell_i, cell, mat
 
 def sum_sparse(m):
@@ -326,10 +372,12 @@ def sum_sparse(m):
         x[ri,a.indices] += a.data
     return x
 
-def viz_preprocessing(dataset, preprocessing, out_dir=None, gamma=0.3, small_window_sizes=[0.01, 0.05, 0.1, 0.25, 0.5], chr_name='chr3'):
+def viz_preprocessing(dataset, preprocessing, out_dir=None, gamma=0.3, small_window_sizes=[0.01, 0.05, 0.1, 0.25, 0.5], chr_name='chr11'):
     import matplotlib.pyplot as plt
     import seaborn as sns
     from scipy.ndimage import median_filter
+    from scipy.stats import rankdata
+    
     print(preprocessing)
     if out_dir is None:
         sub_out_dir = 'raw'
@@ -345,6 +393,22 @@ def viz_preprocessing(dataset, preprocessing, out_dir=None, gamma=0.3, small_win
         for res in tqdm(results):
             cell_i, cell, mat = res.get(timeout=60)
             mats[cell] = mat
+    if preprocessing is not None:
+        if 'idf' in preprocessing:
+            full_mat = []
+            for cell_i, cell in enumerate(sorted(dataset.cell_list)):
+                full_mat.append(mats[cell].A)
+            full_mat = np.stack(full_mat, axis=0)
+            print(full_mat.shape)
+            flat_mat = full_mat.reshape(full_mat.shape[0], -1)
+            idf = np.log((flat_mat.shape[0] + 1) / (np.sum(flat_mat > 0) + 1))
+            flat_mat = flat_mat * idf
+            flat_mat = np.nan_to_num(flat_mat)
+            flat_mat = normalize(flat_mat, norm='l2')
+            full_mat = flat_mat.reshape(full_mat.shape)
+            mats = {}
+            for cell_i, cell in enumerate(sorted(dataset.cell_list)):
+                mats[cell] = csr_matrix(full_mat[cell_i])
     if preprocessing is not None:  # also get raw matrices to compare
         raw_mats = {}
         results = []
@@ -372,10 +436,10 @@ def viz_preprocessing(dataset, preprocessing, out_dir=None, gamma=0.3, small_win
         raw_mat = sum_sparse(merged_raw_mats[c]) / len(merged_raw_mats[c])
         mat = mat + mat.T
         raw_mat = raw_mat + raw_mat.T
-        #ratio = (rankdata(mat).reshape(mat.shape) + 1) / (rankdata(raw_mat).reshape(mat.shape) + 1)
-        ratio = np.log2((mat + 1e-3) / (raw_mat + 1e-3))
-        ratio = median_filter(ratio, size=3)
-        ratio_cmap_max = 2
+        ratio = (rankdata(mat).reshape(mat.shape) + 1) / (rankdata(raw_mat).reshape(mat.shape) + 1)
+        #ratio = np.log2((mat + 1e-3) / (raw_mat + 1e-3))
+        #ratio = median_filter(ratio, size=3)
+        ratio_cmap_max = 1
         im = plt.imshow(ratio, cmap='bwr', vmin=-ratio_cmap_max, vmax=ratio_cmap_max)
         cbar = plt.colorbar(im)
         plt.xticks([])
@@ -531,17 +595,19 @@ def get_loop_strata_data(dataset, loop_file='/mnt/rds/genetics01/JinLab/dmp131/s
     return np.array(mats), strata_n
             
 
-def get_flattened_matrices(dataset, n_strata, preprocessing=None, agg_fn=None, chr_only=None):
+def get_flattened_matrices(dataset, n_strata, preprocessing=None, agg_fn=None, chr_only=None, rw_iter=1, rw_ratio=1.0, strata_offset=0):
+    if strata_offset is None:
+        strata_offset = 0
     mats = {}
     results = []
     with Pool(8) as p:
         for cell_i, cell in enumerate(sorted(dataset.cell_list)):
-            results.append(p.apply_async(get_processed_matrix, args=(dataset, cell, cell_i, preprocessing, chr_only)))
+            results.append(p.apply_async(get_processed_matrix, args=(dataset, cell, cell_i, preprocessing, chr_only, rw_iter, rw_ratio)))
         for res in tqdm(results):
             cell_i, cell, mat = res.get(timeout=1000)
             if chr_only is not None:
                 new_mat = []
-                for i in range(n_strata):
+                for i in range(n_strata + strata_offset):
                     new_mat.append(mat.diagonal(k=i))
                 new_mat = np.concatenate(new_mat)
                 mats[cell] = new_mat
@@ -570,7 +636,7 @@ def get_flattened_matrices(dataset, n_strata, preprocessing=None, agg_fn=None, c
                 mat.append(counts)
             else:
                 counts = []
-                for k in range(n_strata):
+                for k in range(n_strata + strata_offset):
                     new_strata = list(full_mats[cell_i].diagonal(k=k))
                     counts += new_strata
                     if cell_i == 0:

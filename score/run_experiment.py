@@ -97,7 +97,7 @@ def snap_atac_exp(x, y, features, dataset, args, operations=None, load_results=F
     if load_results:
         x = None 
     else:
-        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
+        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio, strata_offset=args.strata_offset)
     exp_name = 'snapatac'
     if operations is not None:
         exp_name += ':' + ','.join(operations)

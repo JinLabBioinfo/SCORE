@@ -43,6 +43,6 @@ class SnapATACExperiment(Experiment):
         #hic.X = 
         print(hic)
         snap.pp.select_features(hic, n_features=min(hic.shape[1], 250000))
-        snap.tl.spectral(hic)
+        snap.tl.spectral(hic, n_comps=self.latent_dim)
 
         return np.array(hic.obsm['X_spectral'])

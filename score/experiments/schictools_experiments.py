@@ -29,7 +29,7 @@ class ScHiCToolsExperiment(Experiment):
         self.method = method
         self.embedding_method = embedding_method
         if 'viz_innerproduct' in self.other_args.keys():
-            self.viz_dist_hist = True
+            self.viz_dist_hist = self.other_args['viz_innerproduct']
 
     def get_embedding(self, iter_n=0):
         if 'schicluster' in self.name.lower():

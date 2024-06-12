@@ -27,6 +27,14 @@ def test_heatmaps():
     assert True
 
 
+def test_agg():
+    test_args = ['app.py', '1d_agg', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json']
+    os.chdir(Path(__file__).parent)
+    with patch.object(sys, 'argv', test_args):
+        app()
+    assert True
+
+
 def test_summary():
     test_args = ['app.py', 'summary', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json']
     os.chdir(Path(__file__).parent)

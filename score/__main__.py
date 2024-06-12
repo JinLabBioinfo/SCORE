@@ -39,6 +39,15 @@ def app():
         from score.experiments.schictools_experiments import ScHiCToolsExperiment
         from score.experiments.scHiCluster_experiment import ScHiClusterExperiment
 
+        if args.scool_downsample is not None:
+            downsample_frac = float(args.scool_downsample)
+            os.makedirs("data/scools/", exist_ok=True)
+            new_scool = f"data/scools/{dataset.dataset_name}_{dataset.res_name}_{downsample_frac}.scool"
+            dataset.write_scool(new_scool, simulate=args.simulate, append_simulated=args.append_simulated, downsample_frac=downsample_frac)
+            dataset.update_from_scool(new_scool)
+            dataset.dataset_name += f"_{downsample_frac}"
+            args.no_cache = True  # don't cache downsampled data so we can re-run with different samples
+
         if args.baseline_sweep or args.embedding_algs is None:
             embedding_algs = ['InnerProduct'
                               'scHiCluster+vc_sqrt_norm_convolution,random_walk']
@@ -468,9 +477,8 @@ def app():
     elif sys.argv[1] == 'heatmaps':
         args, x, y, depths, batches, dataset, valid_dataset = parse_args(
             parser)
-        default_ops = ['vc_sqrt_norm', 'oe_norm', 'convolution', 'random_walk']
-        default_combinations = [['vc_sqrt_norm'],
-                                ['vc_sqrt_norm', 'random_walk'],
+        default_ops = ['idf', 'vc_sqrt_norm', 'oe_norm', 'convolution', 'random_walk']
+        default_combinations = [['vc_sqrt_norm', 'random_walk'],
                                 ['vc_sqrt_norm', 'convolution', 'random_walk']]
         for comb in default_combinations:
             default_ops.append(comb)

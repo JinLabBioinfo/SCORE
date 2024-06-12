@@ -663,10 +663,17 @@ class DataGenerator():
                     loops, _ = self.get_simulated_pixels(
                         cell_name, bulk_loops[bulk_loops_idx], chr_offsets, anchor_ref, downsample_fracs[bulk_loops_idx])
                 else:
-                    loops = self.get_cell_pixels(cell_name)
+                    try:
+                        loops = self.get_cell_pixels(cell_name)
+                    except FileNotFoundError:
+                        print(f'File not found for {cell_name}, skipping...')
+                        continue
+                    except Exception as e:
+                        print(e, cell_name)
+                        continue
                 if downsample_frac is not None:  # downsample each cell by some percentage
                     weights = loops['obs']
-                    weights[weights <= 0] = 0
+                    #weights.loc[weights <= 0] = 0
                     total = loops['obs'].sum()
                     loops['new_count'] = 1
                     loops = loops.sample(
@@ -1039,7 +1046,7 @@ class DataGenerator():
             header.to_csv(out_file + '_bins', sep='\t',
                           header=False, index=False)
             np.savetxt(out_file, mat, header=' '.join(
-                header['a1'].to_list()), fmt='%d')
+                header['anchor'].to_list()), fmt='%d')
             np.savetxt(out_file + '_cells', np.array(cell_names), fmt='%s')
         else:
             return mat
@@ -1584,8 +1591,6 @@ class DataGenerator():
             '.npy', '_%s.npy' % self.dataset_name)
         self.reference = self.reference[self.reference['depth'] >= min_depth].copy()
         self.full_reference.loc[self.full_reference['depth'] < min_depth, 'filtered_reason'] = 'reference depth < min_depth'
-        if ignore_chr_filter:
-            return
         if self.verbose:
             print('Cells before filtering by chr: %d' % len(self.reference))
         if saved_bad_cells in os.listdir('data/inadequate_cells') and not ignore_chr_filter:
@@ -1710,6 +1715,7 @@ class DataGenerator():
                         tmp_mat = VC_SQRT_norm(tmp_mat)
                     elif op.lower() == 'google':
                         tmp_mat = graph_google(tmp_mat)
+                        
                 matrix = csr_matrix(tmp_mat)
 
             compressed_matrix = np.zeros(

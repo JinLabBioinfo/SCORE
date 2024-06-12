@@ -176,9 +176,13 @@ class Experiment():
 
     def load_schictools_data(self, network, full_maps=False):
         from scHiCTools import scHiCs
-        loaded_data = scHiCs(network, reference_genome=self.chr_lengths, resolution=self.resolution, chromosomes='except YM',
+        chromosomes = 'except YM'
+        if 'use_xy' in self.other_args.keys():
+            if self.other_args['use_xy']:
+                chromosomes = 'all'
+        loaded_data = scHiCs(network, reference_genome=self.chr_lengths, resolution=self.resolution, chromosomes=chromosomes,
                             keep_n_strata=self.n_strata, strata_offset=self.strata_offset, exclusive_strata=False, store_full_map=full_maps, format='npz',
-                            operations=self.operations, kwargs=dict(t=self.random_walk_iter, random_walk_ratio=self.random_walk_ratio))
+                            operations=self.operations, t=self.random_walk_iter, random_walk_ratio=self.random_walk_ratio)
         return loaded_data
 
     def save_color_config(self, color_matrix, cluster_names):
@@ -996,8 +1000,10 @@ class Experiment():
         for metric_alg in self.metrics.keys():
             if 'ari' in metric_alg or 'acroc' in metric_alg or 'silhouette' in metric_alg:
                 try:
-                    console.print(f"[green]{metric_alg}[/]: [bold blue]{np.mean(self.metrics[metric_alg]):.2f}[/] +/- [bold red]{np.std(self.metrics[metric_alg]):.2f}[/]")
+                    console.print(f"[green]{metric_alg}[/]: [bold blue]{np.mean(np.float32(self.metrics[metric_alg])):.2f}[/] +/- [bold red]{np.std(np.float32(self.metrics[metric_alg])):.2f}[/]")
                 except Exception as e:
+                    print(e)
+                    print(self.metrics[metric_alg])
                     pass
         if log_wandb and self.plot_viz:
             wandb.log({"umap": wandb.Image(os.path.join(self.out_dir, 'celltype_plots/umap.png'))})

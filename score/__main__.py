@@ -422,10 +422,11 @@ def app():
 
             elif method_name == 'vade':
                 if args.load_vade_from is None:
-                    from score.methods.vade import train_vade
+                    #from score.methods.vade import train_vade
+                    from va3de.methods.vade import train_va3de
                     experiment = VaDEExperiment('vade', x, y, features, dataset, encoder=None, eval_inner=False, other_args=args)
                     for run_i in range(int(args.n_runs)):
-                        train_vade(features, dataset, experiment, run_i, args, preprocessing=operations,
+                        train_va3de(features, dataset, experiment, run_i, args, preprocessing=operations,
                                 load_results=load_results, wandb_config=wandb_config)
                 else:
                     experiment = VaDEExperiment('vade', x, y, features, dataset, encoder=None, eval_inner=True, other_args=args)

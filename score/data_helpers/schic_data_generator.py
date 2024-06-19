@@ -11,12 +11,13 @@ from scipy.sparse import csr_matrix, coo_matrix, save_npz
 from scipy.ndimage import rotate
 from tqdm import tqdm
 from multiprocessing import Pool
+from tensorflow.keras.utils import Sequence
 
 from score.utils.utils import anchor_to_locus, anchor_list_to_dict, sorted_nicely
 from score.utils.matrix_ops import rebin, convolution, random_walk, OE_norm, VC_SQRT_norm, network_enhance, graph_google
 
 
-class DataGenerator():
+class DataGenerator(Sequence):
     def __init__(self, sparse_matrices, anchor_list, anchor_dict, data_dir, reference, full_reference=None, scool_file=None, scool_contents=None, assembly='hg19', res_name='1M', resolution=1000000,
                  n_clusters=None, class_names=None, dataset_name=None, active_regions=None, preprocessing=[],
                  batch_size=64, normalize=False, standardize=False, binarize=False, downsample=False,

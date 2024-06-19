@@ -41,16 +41,38 @@ class VaDEExperiment(Experiment):
             self.encoder = encoder
 
     def get_embedding(self, iter_n=0, batch_size=32):
+        if 'load_va3de_from' in self.other_args.keys() and self.other_args['load_va3de_from'] is not None:
+                embedding = np.load(f"va3de/{self.dataset_name}/0/embedding_{self.other_args['load_va3de_from']}.npy")
+                print(embedding.shape)
         if 'load_vade_from' in self.other_args.keys() and self.other_args['load_vade_from'] is not None:
                 embedding = np.load(f"vade/{self.dataset_name}/0/embedding_{self.other_args['load_vade_from']}.npy")
                 print(embedding.shape)
         else:
             import tensorflow as tf
             embedding = None
-            for batch_i in range(0, self.x.shape[0], batch_size):
-                tmp = self.encoder(self.x[batch_i: batch_i + batch_size]).mean()
-                if embedding is None:
-                    embedding = tmp
-                else:
-                    embedding = tf.concat([embedding, tmp], axis=0)
+            if self.x != []:
+                for batch_i in range(0, self.x.shape[0], batch_size):
+                    tmp = self.encoder(self.x[batch_i: batch_i + batch_size]).mean()
+                    if embedding is None:
+                        embedding = tmp
+                    else:
+                        embedding = tf.concat([embedding, tmp], axis=0)
+            else:
+                batch = []
+                for cell_i in range(self.data_generator.n_cells):
+                    cell, _, _, _, _ = self.data_generator.get_cell_by_index(cell_i, downsample=False, preprocessing=self.data_generator.preprocessing)
+                    batch.append(cell)
+                    if len(batch) == batch_size:
+                        tmp = self.encoder(np.array(batch)).mean()
+                        if embedding is None:
+                            embedding = tmp
+                        else:
+                            embedding = tf.concat([embedding, tmp], axis=0)
+                        batch = []
+                if len(batch) > 0:
+                    tmp = self.encoder(np.array(batch)).mean()
+                    if embedding is None:
+                        embedding = tmp
+                    else:
+                        embedding = tf.concat([embedding, tmp], axis=0)
         return embedding

@@ -69,7 +69,7 @@ class DataGenerator(Sequence):
         self.max_read_depth = self.reference['depth'].max()
         self.batch_size = batch_size  # size of each batch during training
         # list of all cell file names
-        self.cell_list = list(self.reference.index)
+        self.cell_list = sorted(list(self.reference.index))
         self.n_cells = len(self.reference)  # total cells to train on
         if class_names is None:
             # list of cluster names
@@ -208,7 +208,8 @@ class DataGenerator(Sequence):
     def on_epoch_end(self):
         """Updates indexes after each epoch"""
         if self.shuffle:  # randomize cell order for next epoch
-            random.shuffle(self.cell_list)
+            #random.shuffle(self.cell_list)
+            pass
 
     def get_simulated_pixels(self, cell_name, bulk_loops, chr_offsets, anchor_ref, downsample_percent):
         weights = bulk_loops['obs'].values / bulk_loops['obs'].sum()

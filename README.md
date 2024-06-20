@@ -42,6 +42,30 @@ We provide some tutorials to help you get started:
 
 * [Introduction (Creating .scool files and generating your first embeddings)](https://github.com/JinLabBioinfo/SCORE/blob/41a0ed371ba8ef00bff3a13c9d871bae116a1d1b/tutorials/intro.ipynb)
 
+### Supported Embedding Methods
+
+The following embedding methods can be run using the `--embedding_algs` argument (not case sensitive):
+
+* [scHiCluster](https://doi.org/10.1073/pnas.1901423116) (`scHiCluster`)
+* [fastHiCRep+MDS](https://doi.org/10.1093/bioinformatics/bty285) (`fastHiCRep`)
+* [InnerProduct+MDS](https://doi.org/10.1371/journal.pcbi.1008978) (`InnerProduct`)
+* [scHi-C Topic Modeling](https://doi.org/10.1371/journal.pcbi.1008173) (`cisTopic`)
+* [SnapATAC2](https://doi.org/10.1038/s41592-023-02139-9) (`SnapATAC`)
+* [scGAD](https://doi.org/10.1093/bioinformatics/btac372) (`scGAD`) (requires [additional R dependencies](https://sshen82.github.io/BandNorm/articles/BandNorm-tutorial.html))
+* [Insulation Scores](https://doi.org/10.1038/nature14450) (`Insulation`)
+* [DeTOKI](https://doi.org/10.1186/s13059-021-02435-7) (`deTOKI`)
+* [scVI-3D](https://doi.org/10.1186/s13059-022-02774-z) (`3DVI`)
+* [Higashi](https://doi.org/10.1038/s41587-021-01034-y) (`Higashi`)
+* [Fast Higashi](https://doi.org/10.1016/j.cels.2022.09.004) (`fast_higashi`/`fast-higashi`)
+* [Va3DE](https://github.com/JinLabBioinfo/Va3DE) (`VaDE`/`Va3DE`)
+
+We also provide additional baseline methods for benchmarking:
+
+* `1D_PCA` (sum all interactions at each bin, embed 1D counts with PCA)
+* `2D_PCA` (extract band of interactions, embed with PCA)
+* `scVI` (sum all interactions at each bin, train scVI model)
+* `scVI_2D` (extract band of interactions, train scVI model)
+
 ### Basic CLI usage
 
 We provide a small example dataset in the `examples/data` directory. To run `SCORE` you simple need to provide an input `.scool` file and a metadata reference file. You can specify the embedding tool(s) you wish to test using the `--embedding_algs` argument

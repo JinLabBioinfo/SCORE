@@ -36,7 +36,7 @@ class FastHigashiExperiment(Experiment):
         self.model = None  # model needs to be trained before getting embedding
 
     def get_embedding(self, iter_n=0):
-        z = self.model.fetch_cell_embedding(final_dim=min(256, self.data_generator.n_cells))
+        z = self.model.fetch_cell_embedding(final_dim=min(256, self.data_generator.n_cells), restore_order=False)
         print(z)
         print(z['embed_l2_norm'].shape)
         if self.depth_norm:

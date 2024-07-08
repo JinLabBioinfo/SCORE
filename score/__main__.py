@@ -420,7 +420,7 @@ def app():
                 peakVI_exp(x, y, features, dataset, args, one_dim=False,
                            load_results=load_results, wandb_config=wandb_config)
 
-            elif method_name == 'vade':
+            elif method_name == 'vade' or method_name == 'va3de':
                 if args.load_vade_from is None:
                     #from score.methods.vade import train_vade
                     from va3de.methods.vade import train_va3de
@@ -456,7 +456,7 @@ def app():
                     except FileNotFoundError:
                         pass
 
-            elif method_name == 'fast_higashi':
+            elif method_name == 'fast_higashi' or method_name == 'fast-higashi':
                 higashi_exp(x, y, features, dataset, args,
                             load_results=load_results, wandb_config=wandb_config)
                 

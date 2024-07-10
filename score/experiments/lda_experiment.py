@@ -16,9 +16,9 @@ class LDAExperiment(Experiment):
         hic = ad.AnnData(self.x)
         hic.obs_names = sorted(self.data_generator.cell_list)
         hic.obs_names = hic.obs_names.map(lambda s: s.replace(f'.{self.data_generator.res_name}', ''))
-        genomic_pos = self.data_generator.anchor_list.apply(lambda row: f"{row['chr']}:{row['start']}-{row['end']}", axis=1)
-        new_var_names = pd.concat([genomic_pos.iloc[k:] + f'-{k}' for k in range(self.n_strata)])
-        hic.var_names = new_var_names
+        # genomic_pos = self.data_generator.anchor_list.apply(lambda row: f"{row['chr']}:{row['start']}-{row['end']}", axis=1)
+        # new_var_names = pd.concat([genomic_pos.iloc[k:] + f'-{k}' for k in range(self.n_strata)])
+        # hic.var_names = new_var_names
 
         # LDA params from cisTopic paper: https://www.nature.com/articles/s41592-019-0367-1
         alpha = 50 / self.n_components

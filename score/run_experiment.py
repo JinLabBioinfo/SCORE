@@ -11,6 +11,7 @@ from score.experiments.threedvi_experiment import DVIExperiment
 from score.experiments.toki_experiment import TokiExperiment, call_tads
 from score.experiments.IS_experiment import ISExperiment, run_ins_score
 from score.experiments.lsi_2d_experiment import LSI2DExperiment
+from score.experiments.idf_experiment import IDF2DExperiment
 from score.experiments.pca_2d_experiment import PCA2DExperiment
 from score.experiments.scvi_experiment import ScVIExperiment
 from score.experiments.peakvi_experiment import PeakVIExperiment
@@ -90,6 +91,18 @@ def lsi_2d_exp(x, y, features, dataset, args, operations=None, load_results=Fals
     if operations is not None:
         exp_name += ':' + ','.join(operations)
     exp = LSI2DExperiment(exp_name, x, y, features, dataset, preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
+    exp.run(load=load_results, log_wandb=args.wandb, start_time=start_time, wandb_config=wandb_config)
+
+def idf_2d_exp(x, y, features, dataset, args, operations=None, load_results=False, wandb_config=None):
+    start_time = time.time()
+    if load_results:
+        x = None 
+    else:
+        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
+    exp_name = '2d_idf'
+    if operations is not None:
+        exp_name += ':' + ','.join(operations)
+    exp = IDF2DExperiment(exp_name, x, y, features, dataset, preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
     exp.run(load=load_results, log_wandb=args.wandb, start_time=start_time, wandb_config=wandb_config)
 
 def snap_atac_exp(x, y, features, dataset, args, operations=None, load_results=False, wandb_config=None):
@@ -243,7 +256,7 @@ def toki_exp(x, y, features, dataset, args, load_results=False, wandb_config=Non
         current_tads = os.listdir(tad_dir)
         for cell_i, cell_name in tqdm(enumerate(sorted(dataset.cell_list)), total=len(dataset.cell_list)):
             if (cell_name) not in current_tads:
-                cell_i, cell_name, tads = call_tads(cell_i, cell_name, dataset, os.path.join(toki_dir, str(cell_i)), not args.tad_count, core_n=args.n_threads)
+                cell_i, cell_name, tads = call_tads(cell_i, cell_name, dataset, os.path.join(toki_dir, str(cell_i)), not args.tad_count, core_n=args.n_threads, delta_scale=float(args.toki_delta_scale))
                 np.savetxt(os.path.join(tad_dir, cell_name), tads)
                 shutil.rmtree(os.path.join(toki_dir, str(cell_i)))  # delete dense matrices and intermediate chr TADs
 
@@ -325,7 +338,7 @@ def higashi_exp(x, y, features, dataset, args, load_results=False, fast_higashi=
                 higashi_model.process_data()
                 model.prep_dataset()
 
-
+                #if not args.higashi_dryrun:
                 model.run_model(dim1=.6,
                     rank=min(args.latent_dim, dataset.n_cells),
                     n_iter_parafac=1,

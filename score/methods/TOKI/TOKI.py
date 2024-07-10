@@ -128,7 +128,7 @@ def part_zero(F, window, core, resolution, size, delta, length):
     return np.int32(pos)
 
 
-def run_detoki(input_file, output_file, resolution, size, core, split):
+def run_detoki(input_file, output_file, resolution, size, core, split, delta_scale=1.0):
 
     ## Limit each NMF to one core running
     c='1'
@@ -138,12 +138,14 @@ def run_detoki(input_file, output_file, resolution, size, core, split):
 
     t=time.time()
 
-    length = int(4000 / resolution)
+    length = max(1, int(4000 / resolution * delta_scale))
     #length=400//resolution
     #delta=int(math.ceil(100/resolution))
-    delta = int(2000 / resolution)
+    delta = int(2000 / resolution / delta_scale)
     #window=split//resolution
-    window= int(8000 / resolution)
+    window= max(1, int(8000 / resolution * delta_scale))
+
+    print(delta, length, window)
 
     #size = [600, 4000]
 

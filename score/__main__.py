@@ -33,7 +33,7 @@ def app():
             
         from score.experiments.vade_experiment import VaDEExperiment
         from score.experiments.ensemble_experiment import EnsembleExperiment
-        from score.run_experiment import pca_2d_exp, lsi_2d_exp, cisTopic_exp, scVI_exp, peakVI_exp, scGAD_exp, threeDVI_exp, toki_exp, ins_exp, higashi_exp, snap_atac_exp
+        from score.run_experiment import pca_2d_exp, lsi_2d_exp, cisTopic_exp, scVI_exp, peakVI_exp, scGAD_exp, threeDVI_exp, toki_exp, ins_exp, higashi_exp, snap_atac_exp, idf_2d_exp
         from score.experiments.lsi_1d_experiment import LSIExperiment
         from score.experiments.pca_experiment import PCAExperiment
         from score.experiments.schictools_experiments import ScHiCToolsExperiment
@@ -304,7 +304,7 @@ def app():
                     except FileNotFoundError:
                         pass
 
-            elif method_name == '3dvi':
+            elif method_name == '3dvi' or method_name == 'scvi-3d' or method_name == 'scvi3d':
                 threeDVI_exp(x, y, features, dataset, args.anchor_file, args, exp_name,
                              load_results=load_results, wandb_config=wandb_config)
                 if args.no_cache: 
@@ -398,6 +398,10 @@ def app():
 
             elif method_name == '2d_lsi':
                 lsi_2d_exp(x, y, features, dataset, args, operations,
+                           load_results=load_results, wandb_config=wandb_config)
+                
+            elif method_name == '2d_idf':
+                idf_2d_exp(x, y, features, dataset, args, operations,
                            load_results=load_results, wandb_config=wandb_config)
 
             elif method_name == 'snapatac':

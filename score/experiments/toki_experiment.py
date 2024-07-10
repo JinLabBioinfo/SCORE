@@ -43,7 +43,7 @@ class TokiExperiment(Experiment):
         return z_pca
 
 
-def call_tads(cell_i, cell_name, train_generator, toki_dir, tad_count=True, core_n=12):
+def call_tads(cell_i, cell_name, train_generator, toki_dir, tad_count=True, core_n=12, delta_scale=1.0):
     from score.methods.TOKI.TOKI import run_detoki
     os.makedirs(toki_dir, exist_ok=True)
     chr_lengths = train_generator.write_toki_matrices(cell_name, toki_dir)
@@ -52,7 +52,7 @@ def call_tads(cell_i, cell_name, train_generator, toki_dir, tad_count=True, core
     for chr_name in sorted_nicely(train_generator.anchor_list['chr'].unique()):
         in_file = '%s/%s_%s' % (toki_dir, cell_name, chr_name)
         out_file = '%s_TAD' % in_file
-        run_detoki(in_file, out_file, train_generator.resolution / 1000, size=[600, 4000], core=core_n, split=8000)
+        run_detoki(in_file, out_file, train_generator.resolution / 1000, size=[600, 4000], core=core_n, split=8000, delta_scale=delta_scale)
         try:
             with open(out_file, 'r') as f:
                 if os.fstat(f.fileno()).st_size:  # ensure file is not empty
@@ -64,6 +64,8 @@ def call_tads(cell_i, cell_name, train_generator, toki_dir, tad_count=True, core
         except Exception as e:
             pass
         chr_offset += chr_lengths[chr_name]
+        if delta_scale != 1.0:  # only run one chrom when testing
+            break
     tads = np.array(tads)
     return cell_i, cell_name, tads
 

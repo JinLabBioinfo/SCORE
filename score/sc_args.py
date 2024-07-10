@@ -54,7 +54,8 @@ def parse_args(parser, extra_args=None, verbose=True):
     import multiprocessing
     console = Console()
     
-    parser.add_argument('--dset', '--dataset-name', type=str, help='dataset name, used to store results', default='pfc')
+    parser.add_argument('--dset', type=str, help='dataset name, used to store results', default='pfc')
+    parser.add_argument('--dataset', type=str, help='dataset name pointing to directory containing required files', default=None)
     parser.add_argument('--out', type=str, help='directory for writing output files and vizualizations', default='results')
     parser.add_argument('--subname', type=str, help=argparse.SUPPRESS, default=None)
     parser.add_argument('--exp', type=str, help=argparse.SUPPRESS, default='')
@@ -109,6 +110,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--cistopic_maxc', type=int, default=32, help=argparse.SUPPRESS)
     parser.add_argument('--ins_dir', default='data/ins_data', help=argparse.SUPPRESS)
     parser.add_argument('--toki_dir', default='data/toki_data', help=argparse.SUPPRESS)
+    parser.add_argument('--toki_delta_scale', type=float, default=1.0, help=argparse.SUPPRESS)
     parser.add_argument('--no_depth_norm', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--tad_count', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--indep_data', type=str, help=argparse.SUPPRESS)
@@ -177,6 +179,23 @@ def parse_args(parser, extra_args=None, verbose=True):
             args.ignore_chr_filter = True
     except Exception:
         pass
+    if args.dataset is not None:
+        # extract dataset name from path
+        args.dset = args.dataset.split('/')[-1]
+        if args.resolution != '':
+            args.scool = f"{args.dataset}/{args.dset}_{args.resolution}.scool"
+        else:  # find the first scool file in the directory
+            scool_files = [f for f in os.listdir(args.dataset) if f.endswith('.scool')]
+            if len(scool_files) == 0:
+                console.print(f"[red]No .scool files found in directory[/] {args.dataset}")
+                sys.exit(1)
+            args.scool = f"{args.dataset}/{scool_files[0]}"
+        ref_files = [f for f in os.listdir(args.dataset) if f.endswith('ref')]
+        if len(ref_files) > 0:
+            args.reference = f"{args.dataset}/{ref_files[0]}"
+        else:
+            console.print(f"[yellow]No reference file found in directory[/] {args.dataset}")
+            sys.exit(1)
 
     if (args.scool is None and args.data_dir is None and args.anchor_file is None) and args.dataset_config is None:
         console.print(f"[red]Must provide either: [/]")

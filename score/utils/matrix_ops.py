@@ -138,9 +138,7 @@ def lsi(adata, n_components=20, use_highly_variable=None, **kwargs):
     if use_highly_variable is None:
         use_highly_variable = "highly_variable" in adata.var
     adata_use = adata[:, adata.var["highly_variable"]] if use_highly_variable else adata
-    #X = tfidf(adata_use.X)
-    #idf = np.log(X.shape[0] / np.sum(X > 0, axis=0))
-    #X = X.multiply(idf)
+    X = tfidf(adata_use.X)
     X = np.nan_to_num(X)
     X_norm = normalize(X, norm="l2")
     X_lsi = PCA(n_components=n_components).fit_transform(X_norm)

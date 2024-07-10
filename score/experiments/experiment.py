@@ -92,7 +92,8 @@ class Experiment():
                         'completeness': completeness_score,
                         'v-measure': v_measure_score,
                         'accuracy': self.cluster_acc,
-                        'silhouette': partial(silhouette_score, metric='cosine')}  # use cosine distance for comparing embeddings of different volumes
+                        'silhouette': partial(silhouette_score, metric='cosine'),
+                        'silhouette-gt': partial(silhouette_score, metric='cosine')}  # use cosine distance for comparing embeddings of different volumes
         self.clustering_algs = {'k-means': KMeans,
                                 'agglomerative': AgglomerativeClustering,
                                 'gmm': GaussianMixture}
@@ -671,13 +672,19 @@ class Experiment():
 
                 for metric_name in self.metric_algs.keys():
                     metric_alg_key = self.get_metric_alg_key(metric_name, alg)
-                    if metric_name == 'silhouette':
+                    if 'silhouette' in metric_name:
+                        if metric_name == 'silhouette':
+                            labels = predicted_labels[known_cells]
+                            pc_labels = pc_predicted_labels[known_cells]
+                        else:  # using ground truth labels to compute silhouette
+                            labels = y[known_cells]
+                            pc_labels = labels
                         try:
-                            self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], predicted_labels[known_cells])
+                            self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], labels)
                         except ValueError:
                             self.current_metrics[metric_alg_key] = 0
                         try:
-                            self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_predicted_labels[known_cells])
+                            self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_labels)
                         except ValueError:
                             self.current_metrics_no_pc1[metric_alg_key] = 0
                     else:

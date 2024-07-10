@@ -79,6 +79,7 @@ class Experiment():
         self.schictools_data = schictools_data
         self.val_schictools_data = val_schictools_data
         self.plot_viz = not self.data_generator.no_viz
+        self.vade_assignment = None
 
         os.makedirs(self.out_dir, exist_ok=True)
         self.metrics = {'wall_time': []}  # dictionary to store stats. starts with time, new metrics automatically added by defining new entry in metric_algs
@@ -346,7 +347,10 @@ class Experiment():
         os.makedirs(os.path.join(self.out_dir, 'clustering'), exist_ok=True)
         if additional_out_dir != '':
             os.makedirs(os.path.join(self.out_dir, f'clustering{additional_out_dir}'), exist_ok=True)
-        for cluster_alg in list(self.clustering_algs.keys()) + ['leiden', 'louvain']:
+        agg_cluster_algs = list(self.clustering_algs.keys()) + ['leiden', 'louvain']
+        if self.vade_assignment is not None:
+            agg_cluster_algs.append('vade')
+        for cluster_alg in agg_cluster_algs:
             try:
                 fig, axs = plt.subplots(1, 3, figsize=(18, 6))
                 sc.pl.pca(adata, color=cluster_alg, ax=axs[0], show=False, title="PCA Embeddings", legend_loc=None)
@@ -781,8 +785,37 @@ class Experiment():
         sc.tl.pca(adata, n_comps=embedding.shape[1], svd_solver="auto")
         console.print(f"[yellow]Computing KNN graph...[/]")
         sc.pp.neighbors(adata)
+        console.print(f"[yellow]Running Louvain clustering...[/]")
         sc.tl.louvain(adata)
+        # rerun until number of clusters is correct
+        # this was done when benchmarking SnapATAC2 (https://www.nature.com/articles/s41592-023-02139-9)
+        resolution = 1.0
+        delta = 0.2
+        max_resolution = 3
+        tries = 10
+        while len(np.unique(adata.obs['louvain'])) != self.n_clusters:
+            sc.tl.louvain(adata, resolution=resolution)
+            if len(np.unique(adata.obs['louvain'])) > self.n_clusters:
+                resolution -= delta
+            else:
+                resolution += delta
+            tries -= 1
+            if resolution < 0 or resolution > max_resolution or tries <= 0:
+                break
+        console.print(f"[yellow]Running Leiden clustering...[/]")
         sc.tl.leiden(adata)
+        # rerun until number of clusters is correct
+        resolution = 1.0
+        tries = 10
+        while len(np.unique(adata.obs['leiden'])) != self.n_clusters:
+            sc.tl.leiden(adata, resolution=resolution)
+            if len(np.unique(adata.obs['leiden'])) > self.n_clusters:
+                resolution -= delta
+            else:
+                resolution += delta
+            tries -= 1
+            if resolution < 0 or resolution > max_resolution or tries <= 0:
+                break
         if '0' in iter and plot:
             console.print(f"[yellow]Computing UMAP embedding...[/]")
             sc.tl.umap(adata)
@@ -791,7 +824,6 @@ class Experiment():
             adata.write_h5ad(os.path.join(self.out_dir, 'anndata_obj.h5ad'))
             
         for alg in ['louvain', 'leiden']:
-            console.print(f"[yellow]Running {alg} clustering...[/]")
             predicted_labels = np.int32(adata.obs[alg])
             pc_predicted_labels = predicted_labels
             for metric_name in self.metric_algs.keys():
@@ -816,7 +848,31 @@ class Experiment():
                     self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](y[known_cells], pc_predicted_labels[known_cells])
                 self.metrics[metric_alg_key].append(self.current_metrics[metric_alg_key])
                 self.metrics_no_pc1[metric_alg_key].append(self.current_metrics_no_pc1[metric_alg_key])
-
+        if self.vade_assignment is not None:
+            console.print(f"[yellow]Evaluating Va3DE clustering assignment...[/]")
+            for metric_name in self.metric_algs.keys():
+                metric_alg_key = self.get_metric_alg_key(metric_name, 'vade')
+                if metric_alg_key not in self.metrics.keys():
+                    self.metrics[metric_alg_key] = []
+                    self.metrics_no_pc1[metric_alg_key] = []
+                if 'silhouette' in metric_name:
+                    if metric_name == 'silhouette':
+                        labels = self.vade_assignment
+                    else:  # using ground truth labels to compute silhouette
+                        labels = y
+                    try:
+                        self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding, labels)
+                    except ValueError:
+                        self.current_metrics[metric_alg_key] = 0
+                    try:
+                        self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1, labels)
+                    except ValueError:
+                        self.current_metrics_no_pc1[metric_alg_key] = 0
+                else:
+                    self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](y, self.vade_assignment)
+                    self.current_metrics_no_pc1[metric_alg_key] = self.current_metrics[metric_alg_key]
+                self.metrics[metric_alg_key].append(self.current_metrics[metric_alg_key])
+                self.metrics_no_pc1[metric_alg_key].append(self.current_metrics_no_pc1[metric_alg_key])
         if 'eval_celltypes' in self.other_args.keys():  # compute celltype specific metrics
             console.print(f"[yellow]Running celltype specific clustering...[/]")
             if self.other_args['eval_celltypes'] is not None:
@@ -863,9 +919,35 @@ class Experiment():
                             self.metrics_no_pc1[metric_alg_key] = []
                         self.metrics[metric_alg_key].append(self.current_metrics[metric_alg_key])
                         self.metrics_no_pc1[metric_alg_key].append(self.current_metrics_no_pc1[metric_alg_key])
+                if self.vade_assignment is not None:
+                    for metric_name in self.metric_algs.keys():
+                        metric_alg_key = self.other_args['eval_name'] + '_' + self.get_metric_alg_key(metric_name, 'vade')
+                        if metric_alg_key not in self.metrics.keys():
+                            self.metrics[metric_alg_key] = []
+                            self.metrics_no_pc1[metric_alg_key] = []
+                        if 'silhouette' in metric_name:
+                            if metric_name == 'silhouette':
+                                labels = self.vade_assignment
+                            else:
+                                labels = y
+                            try:
+                                self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding, labels)
+                            except ValueError:
+                                self.current_metrics[metric_alg_key] = 0
+                            try:
+                                self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1, labels)
+                            except ValueError:
+                                self.current_metrics_no_pc1[metric_alg_key] = 0
+                        else:
+                            self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](y, self.vade_assignment)
+                            self.current_metrics_no_pc1[metric_alg_key] = self.current_metrics[metric_alg_key]
+                        self.metrics[metric_alg_key].append(self.current_metrics[metric_alg_key])
+                        self.metrics_no_pc1[metric_alg_key].append(self.current_metrics_no_pc1[metric_alg_key])
 
         # now aggregate best performance across all clustering algs
         agg_cluster_algs = list(self.clustering_algs.keys()) + ['leiden', 'louvain']
+        if self.vade_assignment is not None:
+            agg_cluster_algs.append('vade')
         for metric_name in self.metric_algs.keys():
             best_key = f"best_{metric_name}"
             self.current_metrics[best_key] = np.max([self.current_metrics[self.get_metric_alg_key(metric_name, alg)] for alg in agg_cluster_algs])
@@ -1030,6 +1112,8 @@ class Experiment():
             
         for metric_alg in self.metrics.keys():
             if 'ari' in metric_alg or 'acroc' in metric_alg or 'silhouette' in metric_alg:
+                if 'silhouette-gt' in metric_alg and 'best' not in metric_alg:  # clustering alg is irrelevant for silhouette-gt
+                    continue
                 try:
                     console.print(f"[green]{metric_alg}[/]: [bold blue]{np.mean(np.float32(self.metrics[metric_alg])):.2f}[/] +/- [bold red]{np.std(np.float32(self.metrics[metric_alg])):.2f}[/]")
                 except Exception as e:

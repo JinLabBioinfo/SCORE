@@ -39,6 +39,9 @@ class VaDEExperiment(Experiment):
                 self.encoder = keras.models.load_model(encoder_file, custom_objects=custom_objects)
         else:
             self.encoder = encoder
+        self.p_c = None
+        self.component_dist = None
+        self.vade_assignment = None
 
     def get_embedding(self, iter_n=0, batch_size=32):
         if 'load_va3de_from' in self.other_args.keys() and self.other_args['load_va3de_from'] is not None:
@@ -75,4 +78,11 @@ class VaDEExperiment(Experiment):
                         embedding = tmp
                     else:
                         embedding = tf.concat([embedding, tmp], axis=0)
+            z_t = tf.keras.backend.repeat(embedding, self.n_clusters)
+            probs = self.component_dist.log_prob(z_t)
+            probs = probs + self.p_c
+            prob_hist = tf.reduce_mean(tf.exp(probs - tf.reduce_logsumexp(probs, axis=1, keepdims=True)), axis=0)
+            predicted_labels = np.argmax(probs, axis=-1)
+            self.vade_assignment = predicted_labels
+            print(self.vade_assignment)
         return embedding

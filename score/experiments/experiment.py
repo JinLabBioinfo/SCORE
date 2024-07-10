@@ -850,6 +850,7 @@ class Experiment():
                 self.metrics_no_pc1[metric_alg_key].append(self.current_metrics_no_pc1[metric_alg_key])
         if self.vade_assignment is not None:
             console.print(f"[yellow]Evaluating Va3DE clustering assignment...[/]")
+            adata.obs['vade'] = pd.Categorical(self.vade_assignment)
             for metric_name in self.metric_algs.keys():
                 metric_alg_key = self.get_metric_alg_key(metric_name, 'vade')
                 if metric_alg_key not in self.metrics.keys():

@@ -729,13 +729,19 @@ class Experiment():
                         celltype_pred_labels[alg] = predicted_labels
                         for metric_name in self.metric_algs.keys():
                             metric_alg_key = self.other_args['eval_name'] + '_' + self.get_metric_alg_key(metric_name, alg)
-                            if metric_name == 'silhouette':
+                            if 'silhouette' in metric_name:
+                                if metric_name == 'silhouette':
+                                    labels = predicted_labels
+                                    pc_labels = pc_predicted_labels
+                                else:  # using ground truth labels to compute silhouette
+                                    labels = y[known_celltypes_mask]
+                                    pc_labels = labels
                                 try:
-                                    self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_embedding, predicted_labels)
+                                    self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_celltypes_mask], labels)
                                 except ValueError:
                                     self.current_metrics[metric_alg_key] = 0
                                 try:
-                                    self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_pc_embedding, pc_predicted_labels)
+                                    self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_celltypes_mask], pc_labels)
                                 except ValueError:
                                     self.current_metrics_no_pc1[metric_alg_key] = 0
                             else:
@@ -790,13 +796,19 @@ class Experiment():
             pc_predicted_labels = predicted_labels
             for metric_name in self.metric_algs.keys():
                 metric_alg_key = self.get_metric_alg_key(metric_name, alg)
-                if metric_name == 'silhouette':
+                if 'silhouette' in metric_name:
+                    if metric_name == 'silhouette':
+                        labels = predicted_labels[known_cells]
+                        pc_labels = pc_predicted_labels[known_cells]
+                    else:  # using ground truth labels to compute silhouette
+                        labels = y[known_cells]
+                        pc_labels = labels
                     try:
-                        self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], predicted_labels[known_cells])
+                        self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_cells], labels)
                     except ValueError:
                         self.current_metrics[metric_alg_key] = 0
                     try:
-                        self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_predicted_labels[known_cells])
+                        self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_cells], pc_labels)
                     except ValueError:
                         self.current_metrics_no_pc1[metric_alg_key] = 0
                 else:
@@ -828,9 +840,21 @@ class Experiment():
                     pc_predicted_labels = predicted_labels
                     for metric_name in self.metric_algs.keys():
                         metric_alg_key = self.other_args['eval_name'] + '_' + self.get_metric_alg_key(metric_name, alg)
-                        if metric_name == 'silhouette':
-                            self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_embedding, predicted_labels)
-                            self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_pc_embedding, pc_predicted_labels)
+                        if 'silhouette' in metric_name:
+                            if metric_name == 'silhouette':
+                                labels = predicted_labels
+                                pc_labels = pc_predicted_labels
+                            else:  # using ground truth labels to compute silhouette
+                                labels = y[known_celltypes_mask]
+                                pc_labels = labels
+                            try:
+                                self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](embedding[known_celltypes_mask], labels)
+                            except ValueError:
+                                self.current_metrics[metric_alg_key] = 0
+                            try:
+                                self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](pc_embeddings_no_pc1[known_celltypes_mask], pc_labels)
+                            except ValueError:
+                                self.current_metrics_no_pc1[metric_alg_key] = 0
                         else:
                             self.current_metrics[metric_alg_key] = self.metric_algs[metric_name](celltype_y, predicted_labels)
                             self.current_metrics_no_pc1[metric_alg_key] = self.metric_algs[metric_name](celltype_y, pc_predicted_labels)

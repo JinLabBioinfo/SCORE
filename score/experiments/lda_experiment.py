@@ -21,12 +21,32 @@ class LDAExperiment(Experiment):
         # hic.var_names = new_var_names
 
         # LDA params from cisTopic paper: https://www.nature.com/articles/s41592-019-0367-1
-        alpha = 50 / self.n_components
         beta = 0.1
-        lda = LatentDirichletAllocation(n_components=10,
-                                        doc_topic_prior=alpha, topic_word_prior=beta,
-                                        n_jobs=-1,
-                                        random_state=iter_n)
+        max_ll = -np.inf
+        best_lda = None
+        # component range from schi-c cistopic paper: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008173
+        for n_components in range(5, 75, 10):
+            alpha = 50 / self.n_components
+            lda = LatentDirichletAllocation(n_components=n_components,
+                                            doc_topic_prior=alpha, topic_word_prior=beta,
+                                            n_jobs=-1,
+                                            random_state=iter_n)
+            if self.preprocessing is None:
+                binary_mat = np.int32(hic.X > 0)
+                zero_mask = np.sum(binary_mat, axis=0) > 0
+                z = lda.fit_transform(hic.X[:, zero_mask])
+            else:
+                q = np.quantile(hic.X, q=0.8)
+                binary_mat = np.int32(hic.X > q)
+                zero_mask = np.sum(binary_mat, axis=0) > 0
+                in_mat = hic.X[:, zero_mask]
+                z = lda.fit_transform(in_mat)
+            ll = lda.score(hic.X[:, zero_mask])
+            print(n_components, 'LDA perplexity:', lda.bound_, 'LL:', ll)
+            if ll > max_ll:
+                max_ll = ll
+                best_lda = lda
+        lda = best_lda
         if self.preprocessing is None:
             binary_mat = np.int32(hic.X > 0)
             zero_mask = np.sum(binary_mat, axis=0) > 0

@@ -14,6 +14,7 @@ from score import version
 from score.compare_methods import compare_methods_wilcoxon
 from score.utils.matrix_ops import get_flattened_matrices, viz_preprocessing
 from score.utils.utils import resolution_to_name, res_name_to_int
+from score.experiments.test_experiment import TestExperiment
 
 
 console = Console()
@@ -423,6 +424,19 @@ def app():
             elif method_name == 'peakvi_2d':
                 peakVI_exp(x, y, features, dataset, args, one_dim=False,
                            load_results=load_results, wandb_config=wandb_config)
+                
+            elif method_name == 'test':
+                start_time = time.time()
+                if load_results:
+                    x = None 
+                else:
+                    x, strata_k = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio, return_strata_k=True)
+                exp_name = 'test_embed'
+                if operations is not None:
+                    exp_name += ':' + ','.join(operations)
+                exp = TestExperiment(exp_name, x, y, features, dataset, strata_k=strata_k,
+                                    preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
+                exp.run(load=load_results, log_wandb=args.wandb, start_time=start_time, wandb_config=wandb_config)
 
             elif method_name == 'vade' or method_name == 'va3de':
                 if args.load_vade_from is None:

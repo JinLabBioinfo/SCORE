@@ -84,7 +84,7 @@ class Experiment():
         os.makedirs(self.out_dir, exist_ok=True)
         self.metrics = {'wall_time': []}  # dictionary to store stats. starts with time, new metrics automatically added by defining new entry in metric_algs
         self.metrics_no_pc1 = {}
-        self.current_metrics = {}
+        self.current_metrics = {'resolution_metric': self.resolution}
         self.current_metrics_no_pc1 = {}
         self.metric_algs = {'ari': adjusted_rand_score,
                         'nmi': normalized_mutual_info_score,

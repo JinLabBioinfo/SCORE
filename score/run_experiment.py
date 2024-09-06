@@ -98,11 +98,12 @@ def idf_2d_exp(x, y, features, dataset, args, operations=None, load_results=Fals
     if load_results:
         x = None 
     else:
-        x = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio)
+        x, strata_k = get_flattened_matrices(dataset, int(args.n_strata), preprocessing=operations, rw_iter=args.random_walk_iter, rw_ratio=args.random_walk_ratio, return_strata_k=True)
     exp_name = '2d_idf'
     if operations is not None:
         exp_name += ':' + ','.join(operations)
-    exp = IDF2DExperiment(exp_name, x, y, features, dataset, preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
+    exp = IDF2DExperiment(exp_name, x, y, features, dataset, strata_k=strata_k,
+                          preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
     exp.run(load=load_results, log_wandb=args.wandb, start_time=start_time, wandb_config=wandb_config)
 
 def snap_atac_exp(x, y, features, dataset, args, operations=None, load_results=False, wandb_config=None):
@@ -338,11 +339,17 @@ def higashi_exp(x, y, features, dataset, args, load_results=False, fast_higashi=
                 higashi_model.process_data()
                 model.prep_dataset()
 
-                #if not args.higashi_dryrun:
-                model.run_model(dim1=.6,
-                    rank=min(args.latent_dim, dataset.n_cells),
-                    n_iter_parafac=1,
-                    extra="")
+                if not args.higashi_dryrun:
+                    model.run_model(dim1=.6,
+                        rank=min(args.latent_dim, dataset.n_cells),
+                        n_iter_parafac=1,
+                        extra="")
+                else:
+                    model.run_model(dim1=.6,
+                        rank=min(args.latent_dim, dataset.n_cells),
+                        n_iter_parafac=1,
+                        tol=1e-2,  # set to 1e-2 for faster run
+                        extra="")
 
                 experiment.model = model
 

@@ -67,7 +67,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--anchor_file', required=False, type=str, help='path to anchor/bin reference file if not using .scool')
     parser.add_argument('--assembly', required=False, type=str, default='hg19', help='genome assembly used for mapping. important for methods like scGAD and Higashi which consider specific genomic loci')
     parser.add_argument('--reference', required=False, type=str, help='path to tsb delimited reference file containing at least cell name column and any other metadata like celltype, depth, etc')
-    parser.add_argument('--subsample_n_cells', default=None, type=float, help=argparse.SUPPRESS)
+    parser.add_argument('--subsample_n_cells', default=None, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--bin_factor', default=2, type=int)
     parser.add_argument('--no_cache', action='store_true')
     parser.add_argument('--read_distribution', required=False, type=str)
@@ -82,6 +82,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--random_walk_iter', default=1, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--random_walk_ratio', default=1.0, type=float, help=argparse.SUPPRESS)
     parser.add_argument('--wandb', action='store_true')
+    parser.add_argument('--vade_wandb', action='store_true')
     parser.add_argument('--continuous', action='store_true', help='data represents continuous rather than discrete cell states (e.g cell cycle)')
     parser.add_argument('--filter_mitotic', action='store_true')
     parser.add_argument('--use_xy', action='store_true')
@@ -149,6 +150,7 @@ def parse_args(parser, extra_args=None, verbose=True):
 
     # VaDE args
     parser.add_argument('--binarize', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--counts', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--load_vade_from', default=None, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--beta', default=1, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--n_clusters', default=None, type=int, help=argparse.SUPPRESS)
@@ -255,6 +257,14 @@ def parse_args(parser, extra_args=None, verbose=True):
     filter_mitotic = args.filter_mitotic
     downsample = args.downsample
     binarize = args.binarize
+    if args.embedding_algs is not None:
+        for alg in args.embedding_algs:
+            if alg.lower() == 'vade' or alg.lower() == 'va3de':
+                if not args.binarize and not args.counts:
+                    console.print(f"[bright_red]If using Va3DE you must provide either --counts or --binarize[/]")
+                    console.print(f"[yellow]--counts will model the counts of each interaction and will work in most cases[/]")
+                    console.print(f"[yellow]--binarize clips all values to 0/1 and will converge faster and is more well-suited for modeling sparse data (low depth/high resolution) and long-range structure[/]")
+                    sys.exit(1)
     load_data = args.load_cells
 
     if args.resolution != '' and not args.frags:
@@ -360,7 +370,7 @@ def parse_args(parser, extra_args=None, verbose=True):
         if args.append_simulated:
             reference = pd.concat([reference, tmp_ref])  # add simulated reference to real reference
     if args.subsample_n_cells is not None:
-        reference = reference.sample(frac=float(args.subsample_n_cells), random_state=args.seed)
+        reference = reference.sample(n=int(args.subsample_n_cells), random_state=args.seed)
 
     valid_reference = None
     if args.valid_clusters is not None:

@@ -39,10 +39,13 @@ def OE_norm(mat):
     new_mat = np.zeros(mat.shape)
     averages = np.array([np.mean(mat[i:, :len(mat) - i]) for i in range(len(mat))])
     averages = np.where(averages == 0, 1, averages)
+    # for i in range(len(mat)):
+    #     for j in range(len(mat)):
+    #         d = abs(i - j)
+    #         new_mat[i, j] = mat[i, j] / averages[d]
+    # vectorized version
     for i in range(len(mat)):
-        for j in range(len(mat)):
-            d = abs(i - j)
-            new_mat[i, j] = mat[i, j] / averages[d]
+        new_mat[i:, :len(mat) - i] = mat[i:, :len(mat) - i] / averages[i]
     return new_mat
 
 
@@ -145,10 +148,11 @@ def lsi(adata, n_components=20, use_highly_variable=None, **kwargs):
     adata.obsm["X_lsi"] = X_lsi
 
 
-def idf_inner_product(adata, n_components=32, use_highly_variable=None):
+def idf_inner_product(adata, strata_k, n_components=32, use_highly_variable=None):
     from sklearn.manifold import MDS
     from sklearn.preprocessing import normalize
     from sklearn.decomposition import PCA
+    from sklearn.manifold import SpectralEmbedding
     if use_highly_variable is None:
         use_highly_variable = "highly_variable" in adata.var
     adata_use = adata[:, adata.var["highly_variable"]] if use_highly_variable else adata
@@ -166,8 +170,35 @@ def idf_inner_product(adata, n_components=32, use_highly_variable=None):
     # W = np.nan_to_num(W)
     # W
     #z = MDS(n_components=n_components, dissimilarity='precomputed').fit_transform(distance_mat)
-    z = PCA(n_components=n_components).fit_transform(X_norm)
+    #z = PCA(n_components=n_components).fit_transform(X_norm)
     #z = MDS(n_components=n_components).fit_transform(X_norm)
+    #cosine_sim = np.dot(X_norm, X_norm.T)
+    #np.fill_diagonal(cosine_sim, 0)
+    z = PCA(n_components=n_components).fit_transform(X_norm)
+
+    adata.obsm["X_mds"] = z
+
+def per_strata_idf_inner_product(adata, strata_k, n_components=32, use_highly_variable=None):
+    from sklearn.preprocessing import normalize
+    from sklearn.decomposition import PCA
+    from sklearn.manifold import SpectralEmbedding
+    if use_highly_variable is None:
+        use_highly_variable = "highly_variable" in adata.var
+    adata_use = adata[:, adata.var["highly_variable"]] if use_highly_variable else adata
+    n_strata = len(np.unique(strata_k))
+    X = []
+    for k in range(n_strata):
+        strata_X = np.array(adata_use.X[:, strata_k == k])
+        idf = np.log(strata_X.shape[0] / (np.sum(strata_X > 0, axis=0) + 1))
+        strata_X = strata_X * idf
+        strata_X = np.nan_to_num(strata_X)
+        strata_X_norm = normalize(strata_X, norm="l2")
+        X.append(strata_X_norm)
+    X = np.concatenate(X, axis=1)
+    #cosine_sim = np.dot(X, X.T)
+    #np.fill_diagonal(cosine_sim, 0)
+    #z = SpectralEmbedding(n_components=n_components).fit_transform(cosine_sim)
+    z = PCA(n_components=n_components).fit_transform(X)
     adata.obsm["X_mds"] = z
 
 
@@ -593,7 +624,7 @@ def get_loop_strata_data(dataset, loop_file='/mnt/rds/genetics01/JinLab/dmp131/s
     return np.array(mats), strata_n
             
 
-def get_flattened_matrices(dataset, n_strata, preprocessing=None, agg_fn=None, chr_only=None, rw_iter=1, rw_ratio=1.0, strata_offset=0):
+def get_flattened_matrices(dataset, n_strata, preprocessing=None, agg_fn=None, chr_only=None, rw_iter=1, rw_ratio=1.0, strata_offset=0, return_strata_k=False):
     if strata_offset is None:
         strata_offset = 0
     mats = {}
@@ -641,4 +672,8 @@ def get_flattened_matrices(dataset, n_strata, preprocessing=None, agg_fn=None, c
                         strata_k += [k] * len(new_strata)
                 mat.append(counts)
     x = np.array(mat)
-    return x
+    if return_strata_k:
+        strata_k = np.array(strata_k)
+        return x, strata_k
+    else:
+        return x

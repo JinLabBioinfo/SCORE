@@ -369,8 +369,7 @@ def parse_args(parser, extra_args=None, verbose=True):
         reference['type'] = 'real'
         if args.append_simulated:
             reference = pd.concat([reference, tmp_ref])  # add simulated reference to real reference
-    if args.subsample_n_cells is not None:
-        reference = reference.sample(n=int(args.subsample_n_cells), random_state=args.seed)
+   
 
     valid_reference = None
     if args.valid_clusters is not None:
@@ -385,6 +384,8 @@ def parse_args(parser, extra_args=None, verbose=True):
         else:
             reference = reference[reference['cluster'] == args.only_clusters]
             full_reference.loc[~full_reference['cell'].isin(reference['cell']), 'filtered_reason'] = 'celltype not in only_clusters'
+    if args.subsample_n_cells is not None:
+        reference = reference.sample(n=int(args.subsample_n_cells), random_state=args.seed)
 
     if color_config is not None:
         try:

@@ -14,7 +14,6 @@ from score import version
 from score.compare_methods import compare_methods_wilcoxon
 from score.utils.matrix_ops import get_flattened_matrices, viz_preprocessing
 from score.utils.utils import resolution_to_name, res_name_to_int
-from score.experiments.test_experiment import TestExperiment
 
 
 console = Console()
@@ -426,6 +425,7 @@ def app():
                            load_results=load_results, wandb_config=wandb_config)
                 
             elif method_name == 'test':
+                from score.experiments.test_experiment import TestExperiment
                 start_time = time.time()
                 if load_results:
                     x = None 

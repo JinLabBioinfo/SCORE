@@ -1,3 +1,4 @@
+import os
 import cooler
 import numpy as np
 import pandas as pd
@@ -42,7 +43,39 @@ class SnapATACExperiment(Experiment):
         #snap.pp.add_tile_matrix(hic, counting_strategy='fragment', bin_size=10)
         #hic.X = 
         print(hic)
-        snap.pp.select_features(hic, n_features=min(hic.shape[1], 250000))
+        snap.pp.select_features(hic, n_features=min(hic.shape[1], 500000))
         snap.tl.spectral(hic, n_comps=self.latent_dim)
+
+        # import matplotlib.pyplot as plt
+        # query = snap.pp.make_gene_matrix(hic, gene_anno=snap.genome.hg19, counting_strategy='fragment')
+        # query.obs['celltype'] = np.array([self.cluster_names[i] for i in self.y])
+        # print(query)
+        # sc.pp.filter_genes(query, min_cells=2)
+        # sc.pp.highly_variable_genes(
+        #     query,
+        #     n_top_genes = 10000,
+        #     flavor="seurat_v3",
+        #     #batch_key="batch",
+        #     span=1
+        # )
+        # sc.pl.highly_variable_genes(query)
+        # plt.savefig(os.path.join(self.out_dir, f'celltype_plots/highly_variable_genes.png'))
+        # plt.close()
+
+        # sc.pp.scale(query)
+        # sc.pp.pca(query)
+        # sc.pp.neighbors(query)
+        # sc.tl.umap(query)
+        # fig, umap_ax = plt.subplots(figsize=(6, 6))
+        # sc.pl.umap(query, color="celltype", ax=umap_ax, show=False, legend_loc=None, title='', palette=self.color_dict)
+        # plt.savefig(os.path.join(self.out_dir, f'celltype_plots/umap_gene_transfer.png'))
+        # plt.close()
+
+        # try:
+        #     sc.pl.umap(query, color=['INS', 'GCG'])
+        #     plt.savefig(os.path.join(self.out_dir, f'celltype_plots/umap_gene_transfer_ins_gcg.png'))
+        #     plt.close()
+        # except:
+        #     pass
 
         return np.array(hic.obsm['X_spectral'])

@@ -213,22 +213,6 @@ def compare_methods_wilcoxon(dataset_name, res_name, main_metric='ari', palette=
         print(e)
 
     try:
-        g = sns.catplot(data=results, x='method', y='p', kind='bar', hue='cluster_alg', 
-                        aspect=3, order=method_order, palette='Set2', legend_out=True)
-        plt.axhline(0, linestyle='--', c='k')
-        plt.xticks(rotation=90)
-        plt.tight_layout()
-        plt.savefig(os.path.join(out_dir, 'compare_to_all_p.png'))
-        plt.savefig(os.path.join(out_dir, 'compare_to_all_p.pdf'))
-        ax = g.ax
-        significant_bars = []
-        for rect in ax.patches:
-            height = rect.get_height()
-            significant_bars.append(height <= alpha / len(agg_results))
-        plt.close()
-    except Exception as e:
-        print(e)
-    try:
         g = sns.catplot(data=results, x='method', y='effect_size', hue='cluster_alg', kind='bar', palette=palette,
                         aspect=3, order=method_order, legend_out=True)
         ax = g.ax
@@ -246,23 +230,7 @@ def compare_methods_wilcoxon(dataset_name, res_name, main_metric='ari', palette=
         plt.close()
     except Exception as e:
         print(e)
-    try:
-        g = sns.catplot(data=results, x='method', y='p', kind='bar', hue='preprocessing', 
-                        hue_order=preprocessing_order, aspect=3, order=method_order, palette=palette, legend_out=True)
-        plt.axhline(0, linestyle='--', c='k')
-        plt.xticks(rotation=90)
-        plt.tight_layout()
-        plt.savefig(os.path.join(out_dir, 'compare_to_all_p_hue_preprocessing.png'))
-        plt.savefig(os.path.join(out_dir, 'compare_to_all_p_hue_preprocessing.pdf'))
-
-        ax = g.ax
-        significant_bars = []
-        for rect in ax.patches:
-            height = rect.get_height()
-            significant_bars.append(height <= alpha)
-        plt.close() 
-    except Exception as e:
-        print(e)           
+               
     try:
         g = sns.catplot(data=results, x='method', y='effect_size', hue='preprocessing', palette=palette,
                         hue_order=preprocessing_order, kind='bar', aspect=3, order=method_order, legend_out=True)

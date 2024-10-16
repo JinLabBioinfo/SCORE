@@ -147,6 +147,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--higashi_n_strata', type=int, default=None, help=argparse.SUPPRESS)
     parser.add_argument('--higashi_strata_offset', type=int, default=0, help=argparse.SUPPRESS)
     parser.add_argument('--higashi_dryrun', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--fast_higashi_tol', type=float, default=1e-3, help=argparse.SUPPRESS)
 
     # VaDE args
     parser.add_argument('--binarize', action='store_true', help=argparse.SUPPRESS)

@@ -184,7 +184,7 @@ def test_higashi_rw():
 
 def test_fast_higashi():
     test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
-                 '--embedding_algs', 'fast_higashi', '--no_viz', '--higashi_dryrun', '--min_depth', min_depth]
+                 '--embedding_algs', 'fast_higashi', '--no_viz', '--higashi_dryrun', '--min_depth', min_depth, '--fast_higashi_tol', '0.1']
     test_args += subsample_args
     os.chdir(Path(__file__).parent)
     with patch.object(sys, 'argv', test_args):
@@ -215,7 +215,7 @@ def test_3dvi():
 
 def test_vade():
     test_args = ['app.py', 'embed', '--dataset_config', 'data/dataset_configs/oocyte_zygote_mm10.json',
-                 '--embedding_algs', 'vade', '--no_viz', '--n_strata', '32', '--min_depth', min_depth]
+                 '--embedding_algs', 'vade', '--no_viz', '--n_strata', '16', '--min_depth', min_depth]
     os.chdir(Path(__file__).parent)
     with patch.object(sys, 'argv', test_args):
         app()

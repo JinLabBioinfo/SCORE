@@ -348,7 +348,7 @@ def higashi_exp(x, y, features, dataset, args, load_results=False, fast_higashi=
                     model.run_model(dim1=.6,
                         rank=min(args.latent_dim, dataset.n_cells),
                         n_iter_parafac=1,
-                        tol=1e-2,  # set to 1e-2 for faster run
+                        tol=float(args.fast_higashi_tol),
                         extra="")
 
                 experiment.model = model

@@ -82,11 +82,59 @@ This will create a new `results` directory (or a directory specified by `--out`)
 
 We also provide the datasets analyzed in our benchmark publication at various resolutions which can be downloaded from the following to reproduce our results:
 
+#### Mouse Oocyte/Zygote
 ```bash
-wget hiview10.gene.cwru.edu/~xww/scHi-C_data.tar.gz
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/oocyte_zygote.tar.gz
 ```
 
-For example, to reproduce the short-range complex tissue analysis, we can run:
+#### Mouse Embryo
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/embryo.tar.gz
+```
+
+#### mESC Cell Cycle (scHi-C)
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/cell_cycle.tar.gz
+```
+
+#### mESC Cell Cycle (scCAREseq)
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/sccareseq.tar.gz
+```
+
+#### Human sciHi-C Mixture
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/ramani.tar.gz
+```
+
+#### Human 4DN sciHi-C Mixture
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/kim.tar.gz
+```
+
+#### Human Prefrontal Cortex 
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/pfc.tar.gz
+```
+
+#### Mouse Brain (HiRes)
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/hires_brain.tar.gz
+```
+
+#### Mouse Hippocampus
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/mouse_hippocampus.tar.gz
+```
+
+#### Human Brain Atlas
+```bash
+wget hiview10.gene.cwru.edu/~dmp131/scHi-C/human_brain.tar.gz
+```
+
+Each of these compressed files contains various .scool files from different resolutions, and a metadata reference file. 
+These are the only two required arguments for getting started with embedding analysis.
+For example, to reproduce the short-range complex tissue analysis, download and unzip the PFC data, and then we can run:
 
 ```bash
 score embed --dset pfc \  # name for saving results
@@ -139,3 +187,18 @@ score embed --dset embryo \  # name for saving results
 * `--ignore_filter` will ignore all filtering criteria
 
 * `--ignore_chr_filter` will ignore the per-chromosome filtering criteria (i.e a chromosome of length <m>Mb must have at least m reads)
+
+
+### Developer Instructions
+
+```bash
+make test
+```
+
+Will run a suite of tests ranging from basic matrix operations, dataset loading, converting, and full pipelines of every method.
+Currently takes ~30 mins on a 24 core 256GB system with no GPU (we only do a couple iterations of each method which requires GPU for testing).
+Profile this on your own machine using:
+
+```bash
+make profile
+```

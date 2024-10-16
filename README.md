@@ -122,3 +122,20 @@ score embed --dset embryo \  # name for saving results
             --embedding_algs 1d_pca InnerProduct scHiCluster \
             --n_runs 10
 ```
+
+
+### Useful Arguments
+
+* `--load_results` will skip the embedding step and just compute metrics based on the embeddings that are already saved
+
+* `--no_viz` will skip PCA, t-SNE, and UMAP visualizations to save time
+
+* `--eval_celltypes` provide a list of celltypes to further cluster, visualize, and compute metrics for
+
+* `--subsample_n_cells` to randomly select a certain number of cells from the dataset
+
+* `--continuous` will compute Average Circular ROC for a dataset such as the cell cycle
+
+* `--ignore_filter` will ignore all filtering criteria
+
+* `--ignore_chr_filter` will ignore the per-chromosome filtering criteria (i.e a chromosome of length <m>Mb must have at least m reads)

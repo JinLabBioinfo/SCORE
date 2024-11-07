@@ -23,7 +23,9 @@ class DataGenerator(Sequence):
                  batch_size=64, normalize=False, standardize=False, binarize=False, downsample=False,
                  simulate_from_bulk=False, bulk_cooler_dir=None, simulate_n=None, simulate_depth=None, real_n=0,
                  depth_norm=False, distance_norm=False, shuffle=True, use_raw_data=True, no_viz=False,
-                 rotated_cells=False, resize_amount=1, limit2Mb=8, rotated_offset=0, depth=4, verbose=True, filter_cells_by_depth=True, ignore_chr_filter=False, color_config=None):
+                 rotated_cells=False, resize_amount=1, limit2Mb=8, rotated_offset=0, depth=4, verbose=True, 
+                 filter_cells_by_depth=True, ignore_chr_filter=False, min_depth=5000,
+                 color_config=None):
         # dictionary of rotated cells represented as sparse matrices
         self.sparse_matrices = sparse_matrices
         self.cell_anchor_vectors = None
@@ -63,7 +65,7 @@ class DataGenerator(Sequence):
             self.dataset_name = dataset_name
         if filter_cells_by_depth and not simulate_from_bulk:
             # remove cells which do not fit sequencing depth criteria
-            self.filter_cells(ignore_chr_filter=ignore_chr_filter)
+            self.filter_cells(ignore_chr_filter=ignore_chr_filter, min_depth=min_depth)
         # list of preprocessing operations to apply to each matrix generated
         self.preprocessing = preprocessing
         self.max_read_depth = self.reference['depth'].max()

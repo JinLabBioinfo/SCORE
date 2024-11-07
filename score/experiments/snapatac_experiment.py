@@ -10,11 +10,16 @@ from score.experiments.experiment import Experiment
 
 
 class SnapATACExperiment(Experiment):
-    def __init__(self, name, x, y, features, data_generator, n_strata, preprocessing=None, **kwargs):
+    def __init__(self, name, x, y, features, data_generator, n_strata, preprocessing=None, n_features=500000, upper_q=0.005, lower_q=0.005, max_iter=1, ignore_idf=False, **kwargs):
         super().__init__(name, x, y, features, data_generator, **kwargs)
         self.n_strata = n_strata
         self.n_components = self.latent_dim
         self.preprocessing = preprocessing
+        self.n_features = n_features
+        self.upper_q = upper_q
+        self.lower_q = lower_q
+        self.max_iter = max_iter
+        self.ignore_idf = ignore_idf
 
     def get_embedding(self, iter_n=0, remove_pc1=True):
         hic = ad.AnnData(csr_matrix(np.uint32(self.x)), obs=pd.DataFrame(index=sorted(self.data_generator.cell_list)))
@@ -43,8 +48,11 @@ class SnapATACExperiment(Experiment):
         #snap.pp.add_tile_matrix(hic, counting_strategy='fragment', bin_size=10)
         #hic.X = 
         print(hic)
-        snap.pp.select_features(hic, n_features=min(hic.shape[1], 500000))
-        snap.tl.spectral(hic, n_comps=self.latent_dim)
+        snap.pp.select_features(hic, n_features=min(hic.shape[1], self.n_features), filter_upper_quantile=self.upper_q, filter_lower_quantile=self.lower_q, max_iter=self.max_iter)
+        feature_weights = None  # will use IDF as weights
+        if not self.ignore_idf:  # use all ones as weights
+            feature_weights = np.ones(hic.shape[1])
+        snap.tl.spectral(hic, n_comps=self.latent_dim, feature_weights=feature_weights)
 
         # import matplotlib.pyplot as plt
         # query = snap.pp.make_gene_matrix(hic, gene_anno=snap.genome.hg19, counting_strategy='fragment')

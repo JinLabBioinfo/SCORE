@@ -496,9 +496,8 @@ def app():
     elif sys.argv[1] == 'heatmaps':
         args, x, y, depths, batches, dataset, valid_dataset = parse_args(
             parser)
-        default_ops = ['idf', 'vc_sqrt_norm', 'oe_norm', 'convolution', 'random_walk']
-        default_combinations = [['vc_sqrt_norm', 'random_walk'],
-                                ['vc_sqrt_norm', 'convolution', 'random_walk']]
+        default_ops = ['vc_sqrt_norm']
+        default_combinations = [['vc_sqrt_norm', 'convolution', 'random_walk']]
         for comb in default_combinations:
             default_ops.append(comb)
         viz_preprocessing(dataset, None)

@@ -142,6 +142,13 @@ def parse_args(parser, extra_args=None, verbose=True):
     # 3dvi args
     parser.add_argument('--three3dvi_epochs', default=30, type=int, help=argparse.SUPPRESS)
 
+    # Snapatac2 args
+    parser.add_argument('--snapatac_features', default=500000, type=int, help=argparse.SUPPRESS)
+    parser.add_argument('--snapatac_upper_q', default=0.005, type=float, help=argparse.SUPPRESS)
+    parser.add_argument('--snapatac_lower_q', default=0.005, type=float, help=argparse.SUPPRESS)
+    parser.add_argument('--snapatac_max_iter', default=1, type=int, help=argparse.SUPPRESS)
+    parser.add_argument('--snapatac_no_idf', action='store_true')
+
     # Higashi args
     parser.add_argument('--higashi_epochs', default=30, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--higashi_n_strata', type=int, default=None, help=argparse.SUPPRESS)
@@ -493,7 +500,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     train_generator = DataGenerator(sparse_matrices, anchor_list, anchor_dict, data_dir, reference, full_reference=full_reference, res_name=res_name, scool_file=scool_file, scool_contents=content_of_scool, assembly=assembly,
                                     n_clusters=n_cell_types, class_names=cluster_names, resolution=resolution, downsample=downsample, 
                                     simulate_from_bulk=args.simulate, bulk_cooler_dir=args.bulk_coolers_dir, simulate_n=args.simulate_n, simulate_depth=args.simulate_depth,
-                                    filter_cells_by_depth=filter_by_depth, ignore_chr_filter=args.ignore_chr_filter,
+                                    filter_cells_by_depth=filter_by_depth, ignore_chr_filter=args.ignore_chr_filter, min_depth=min_depth,
                                     standardize=args.gaussian_output, dataset_name=dataset_name, preprocessing=args.schictools_preprocessing, limit2Mb=n_strata, rotated_offset=strata_offset, binarize=binarize, color_config=color_config, 
                                     active_regions=None, no_viz=args.no_viz)
     valid_generator = None
@@ -501,7 +508,7 @@ def parse_args(parser, extra_args=None, verbose=True):
         valid_generator = DataGenerator(sparse_matrices, anchor_list, anchor_dict, data_dir, valid_reference, res_name=res_name, scool_file=scool_file, scool_contents=content_of_scool, assembly=assembly,
                                     n_clusters=n_cell_types, resolution=resolution, downsample=downsample, 
                                     simulate_from_bulk=args.simulate, bulk_cooler_dir=args.bulk_coolers_dir, simulate_n=args.simulate_n, simulate_depth=args.simulate_depth,
-                                    filter_cells_by_depth=filter_by_depth, ignore_chr_filter=args.ignore_chr_filter,
+                                    filter_cells_by_depth=filter_by_depth, ignore_chr_filter=args.ignore_chr_filter, min_depth=min_depth,
                                     standardize=args.gaussian_output, dataset_name=dataset_name, preprocessing=args.schictools_preprocessing, limit2Mb=n_strata, rotated_offset=strata_offset, binarize=binarize, color_config=color_config, 
                                     active_regions=None, no_viz=args.no_viz)
 

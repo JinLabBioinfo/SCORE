@@ -115,7 +115,10 @@ def snap_atac_exp(x, y, features, dataset, args, operations=None, load_results=F
     exp_name = 'snapatac'
     if operations is not None:
         exp_name += ':' + ','.join(operations)
-    exp = SnapATACExperiment(exp_name, x, y, features, dataset, preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
+    exp = SnapATACExperiment(exp_name, x, y, features, dataset, 
+                             n_features=int(args.snapatac_features), upper_q=float(args.snapatac_upper_q), lower_q=float(args.snapatac_lower_q), max_iter=int(args.snapatac_max_iter),
+                             ignore_idf=bool(args.snapatac_no_idf),
+                             preprocessing=operations, n_strata=int(args.n_strata), n_experiments=int(args.n_runs), simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
     exp.run(load=load_results, log_wandb=args.wandb, start_time=start_time, wandb_config=wandb_config)
 
 

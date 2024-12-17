@@ -42,6 +42,8 @@ We provide some tutorials to help you get started:
 
 * [Introduction (Creating .scool files and generating your first embeddings)](https://github.com/JinLabBioinfo/SCORE/blob/41a0ed371ba8ef00bff3a13c9d871bae116a1d1b/tutorials/intro.ipynb)
 
+* Mouse Embryo [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1WRW5gnQ7se-QfF84jcT4mabvtoEdquLP?usp=sharing)
+
 ### Supported Embedding Methods
 
 The following embedding methods can be run using the `--embedding_algs` argument (not case sensitive):

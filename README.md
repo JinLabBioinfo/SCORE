@@ -48,7 +48,7 @@ We provide some tutorials to help you get started:
 
 ### Supported Embedding Methods
 
-The following embedding methods can be run using the `--embedding_algs` argument (not case sensitive):
+The following embedding methods can be run using the `--methods` or `--embedding_algs` arguments (not case sensitive):
 
 * [scHiCluster](https://doi.org/10.1073/pnas.1901423116) (`scHiCluster`)
 * [fastHiCRep+MDS](https://doi.org/10.1093/bioinformatics/bty285) (`fastHiCRep`)

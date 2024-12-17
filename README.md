@@ -42,9 +42,13 @@ We provide some tutorials to help you get started:
 
 * [Introduction (Creating .scool files and generating your first embeddings)](https://github.com/JinLabBioinfo/SCORE/blob/41a0ed371ba8ef00bff3a13c9d871bae116a1d1b/tutorials/intro.ipynb)
 
-* Mouse Embryo [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1WRW5gnQ7se-QfF84jcT4mabvtoEdquLP?usp=sharing)
+* Basic Usage (Mouse Embryo) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1WRW5gnQ7se-QfF84jcT4mabvtoEdquLP?usp=sharing)
 
-* Va3DE [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/18hawprSdTEQLeNLiqMrVOFBTqct5BP4q?usp=sharing)
+* Random Walk Comparison (Human PFC) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1saYN7o-MHB__cQd4VaRtRL6kQK3CNlGy?usp=sharing)
+
+* Va3DE (Mouse Embryo) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/18hawprSdTEQLeNLiqMrVOFBTqct5BP4q?usp=sharing)
+
+* Va3DE (Human PFC) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ctZfbUwnIqFr1UeV8p1OedhJR1qATBy9?usp=sharing)
 
 ### Supported Embedding Methods
 

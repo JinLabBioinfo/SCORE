@@ -40,7 +40,7 @@ score --help
 
 We provide some tutorials to help you get started:
 
-* [Introduction (Creating .scool files and generating your first embeddings)](https://github.com/JinLabBioinfo/SCORE/blob/41a0ed371ba8ef00bff3a13c9d871bae116a1d1b/tutorials/intro.ipynb)
+* [Introduction (Creating .scool files and generating your first embeddings)](https://github.com/JinLabBioinfo/SCORE/blob/bb07e07b50dfc80b1ac3a982159b4c73f2eb6fde/tutorials/intro.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1h4a8EEj2m31xrxFDwRKU7S3CykIK5Jkw?usp=sharing)
 
 * Basic Usage (Mouse Embryo) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1WRW5gnQ7se-QfF84jcT4mabvtoEdquLP?usp=sharing)
 

@@ -44,7 +44,7 @@ We provide some tutorials to help you get started:
 
 * Basic Usage (Mouse Embryo) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1WRW5gnQ7se-QfF84jcT4mabvtoEdquLP?usp=sharing)
 
-* Random Walk Comparison (Human PFC) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1saYN7o-MHB__cQd4VaRtRL6kQK3CNlGy?usp=sharing)
+* Random Walk Comparison (Human PFC and Mouse Embryo) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1saYN7o-MHB__cQd4VaRtRL6kQK3CNlGy?usp=sharing)
 
 * Va3DE (Mouse Embryo) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/18hawprSdTEQLeNLiqMrVOFBTqct5BP4q?usp=sharing)
 

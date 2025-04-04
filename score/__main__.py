@@ -33,7 +33,7 @@ def app():
             
         from score.experiments.vade_experiment import VaDEExperiment
         from score.experiments.ensemble_experiment import EnsembleExperiment
-        from score.run_experiment import pca_2d_exp, lsi_2d_exp, cisTopic_exp, scVI_exp, peakVI_exp, scGAD_exp, threeDVI_exp, toki_exp, ins_exp, higashi_exp, snap_atac_exp, idf_2d_exp
+        from score.run_experiment import pca_2d_exp, lsi_2d_exp, cisTopic_exp, scVI_exp, peakVI_exp, scGAD_exp, threeDVI_exp, toki_exp, ins_exp, higashi_exp, snap_atac_exp, idf_2d_exp, higlue_exp
         from score.experiments.lsi_1d_experiment import LSIExperiment
         from score.experiments.pca_experiment import PCAExperiment
         from score.experiments.schictools_experiments import ScHiCToolsExperiment
@@ -285,13 +285,15 @@ def app():
                 cisTopic_exp(x, y, features, dataset, args, exp_name, operations, minc=args.cistopic_minc,
                              maxc=args.cistopic_maxc, load_results=load_results, wandb_config=wandb_config)
 
-            elif method_name == 'scgad':
+            elif method_name in ['scgad', 'scgad_harmony', 'scgad_scanorama', 'scgad_atac', 'scgad_scvi', 'scgad_bbknn', 'scgad_mnn', 'scgad_combat']:
                 random_walk = False
                 if operations is not None:
                     if 'random_walk' in operations:
                         random_walk = True
+                if args.rna_anndata is not None:
+                    exp_name += f'_rna'
                 scGAD_exp(x, y, features, dataset, args.anchor_file, args, exp_name, operations,
-                          depth_norm=not args.no_depth_norm, random_walk=random_walk, load_results=load_results, wandb_config=wandb_config)
+                          depth_norm=args.depth_norm, random_walk=random_walk, load_results=load_results, wandb_config=wandb_config)
                 if args.no_cache:  # remove sparse matrix file tmp data
                     try:
                         sparse_dir = f'schic-topic-model/data/{dataset.dataset_name}_{dataset.res_name}'
@@ -487,6 +489,10 @@ def app():
                 #         shutil.rmtree(higashi_data_dir)
                 #     except FileNotFoundError:
                 #         pass
+            elif method_name == 'higlue':
+                higlue_exp(x, y, features, dataset, args,
+                            load_results=load_results, wandb_config=wandb_config)
+
 
         console.print("[bright_green]Done running embedding methods...[/]")
         if len(embedding_algs) > 1 and int(args.n_runs) > 1:

@@ -156,11 +156,14 @@ def idf_inner_product(adata, strata_k, n_components=32, use_highly_variable=None
     if use_highly_variable is None:
         use_highly_variable = "highly_variable" in adata.var
     adata_use = adata[:, adata.var["highly_variable"]] if use_highly_variable else adata
+    first_two_strata_mask = strata_k < 2
     X = np.array(adata_use.X)
     idf = np.log(X.shape[0] / (np.sum(X > 0, axis=0) + 1))
     X = X * idf
+    X[:, first_two_strata_mask] = np.log1p(adata_use.X[:, first_two_strata_mask])  # keep first two strata as raw counts
     X = np.nan_to_num(X)
     X_norm = normalize(X, norm="l2")
+    X = np.nan_to_num(X)
     # inner = X_norm.dot(X_norm.T)
     # inner[inner > 1] = 1
     # inner[inner < -1] = -1

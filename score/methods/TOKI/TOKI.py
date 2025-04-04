@@ -145,8 +145,6 @@ def run_detoki(input_file, output_file, resolution, size, core, split, delta_sca
     #window=split//resolution
     window= max(1, int(8000 / resolution * delta_scale))
 
-    print(delta, length, window)
-
     #size = [600, 4000]
 
     ## Input the contact matrix and output the detected TAD boundaries

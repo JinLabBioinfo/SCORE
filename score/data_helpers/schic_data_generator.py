@@ -55,6 +55,7 @@ class DataGenerator(Sequence):
         self.res_name = res_name
         self.resolution = resolution
         self.verbose = verbose
+        self.min_depth = min_depth
         self.depth = depth  # depth of autoencoder model
         # optionally filter representations to only active regions (or any regions provided)
         self.active_regions = active_regions
@@ -282,9 +283,12 @@ class DataGenerator(Sequence):
                 filename.replace('.cis.filter', '.trans'))
         else:
             loops = self.get_cell_pixels(cell_name)
-            trans = loops  # ignore trans reads when not using frags
+            #trans = loops  # ignore trans reads when not using frags
         loops['chr1'] = loops['a1'].map(anchor_chr_dict)
         loops['chr2'] = loops['a2'].map(anchor_chr_dict)
+        if not from_frags:
+            trans = loops.loc[loops['chr1'] != loops['chr2']]
+            loops = loops.loc[loops['chr1'] == loops['chr2']]
         loops['a1_start'] = loops['a1'].map(anchor_dict)
         loops['a1_start'] = loops.apply(
             lambda row: row['a1_start'] + chr_offsets[row['chr1']], axis=1)

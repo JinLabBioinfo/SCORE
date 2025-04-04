@@ -75,7 +75,7 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--max_depth', default=None, type=int)
     parser.add_argument('--n_threads', default=max(1, int(multiprocessing.cpu_count() / 4)), type=int)
     parser.add_argument('--n_runs', default=1, type=int, help='repeat each embeddding/clustering run to get a representative sample')
-    parser.add_argument('--n_strata', default=16, type=int, help='force the number of strata used by embedding methods')
+    parser.add_argument('--n_strata', default=32, type=int, help='force the number of strata used by embedding methods')
     parser.add_argument('--latent_dim', default=32, type=int, help='number of dimensions in final embedding')
     parser.add_argument('--strata_offset', default=None, type=int, help='ignore strata within this range')
     parser.add_argument('--n_cell_types', default=None, type=int, help=argparse.SUPPRESS)
@@ -108,11 +108,12 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--schictools_n_strata', type=int, default=None, help=argparse.SUPPRESS)
     parser.add_argument('--schictools_strata_offset', type=int, default=0, help=argparse.SUPPRESS)
     parser.add_argument('--cistopic_minc', type=int, default=8, help=argparse.SUPPRESS)
-    parser.add_argument('--cistopic_maxc', type=int, default=32, help=argparse.SUPPRESS)
+    parser.add_argument('--cistopic_maxc', type=int, default=64, help=argparse.SUPPRESS)
     parser.add_argument('--ins_dir', default='data/ins_data', help=argparse.SUPPRESS)
     parser.add_argument('--toki_dir', default='data/toki_data', help=argparse.SUPPRESS)
     parser.add_argument('--toki_delta_scale', type=float, default=1.0, help=argparse.SUPPRESS)
-    parser.add_argument('--no_depth_norm', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--depth_norm', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--batch_correct', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--tad_count', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--indep_data', type=str, help=argparse.SUPPRESS)
     parser.add_argument('--frags', action='store_true', help=argparse.SUPPRESS)
@@ -150,11 +151,11 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--snapatac_no_idf', action='store_true')
 
     # Higashi args
-    parser.add_argument('--higashi_epochs', default=30, type=int, help=argparse.SUPPRESS)
+    parser.add_argument('--higashi_epochs', default=60, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--higashi_n_strata', type=int, default=None, help=argparse.SUPPRESS)
     parser.add_argument('--higashi_strata_offset', type=int, default=0, help=argparse.SUPPRESS)
     parser.add_argument('--higashi_dryrun', action='store_true', help=argparse.SUPPRESS)
-    parser.add_argument('--fast_higashi_tol', type=float, default=1e-3, help=argparse.SUPPRESS)
+    parser.add_argument('--fast_higashi_tol', type=float, default=2e-5, help=argparse.SUPPRESS)
 
     # VaDE args
     parser.add_argument('--binarize', action='store_true', help=argparse.SUPPRESS)
@@ -167,12 +168,19 @@ def parse_args(parser, extra_args=None, verbose=True):
     parser.add_argument('--stride', default=2, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--stride_y', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--gaussian_output', action='store_true', help=argparse.SUPPRESS)
-    parser.add_argument('--n_epochs', default=500, type=int, help=argparse.SUPPRESS)
+    parser.add_argument('--n_epochs', default=1000, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--batch_size', default=64, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--viz_interval', default=2, type=int, help=argparse.SUPPRESS)
     parser.add_argument('--pretrain', default=False, type=bool, help=argparse.SUPPRESS)
-    parser.add_argument('--lr', default=3e-4, type=float, help=argparse.SUPPRESS)
+    parser.add_argument('--lr', default=1e-4, type=float, help=argparse.SUPPRESS)
     parser.add_argument('--weight_decay', default=0.0001, type=float, help=argparse.SUPPRESS)
+
+    # HiGLUE args
+    parser.add_argument('--glue_file', type=str, help=argparse.SUPPRESS)
+    parser.add_argument('--prior_graph', type=str, help=argparse.SUPPRESS)
+    parser.add_argument('--hic_anndata', type=str, help=argparse.SUPPRESS)
+    
+
     if extra_args is None:
         args = parser.parse_args(sys.argv[2:])
     else:  # running tests from pytest

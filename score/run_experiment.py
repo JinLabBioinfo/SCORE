@@ -192,7 +192,13 @@ def scGAD_exp(x, y, features, dataset, anchor_file, args, exp_name, operations, 
             if os.path.isfile(scgad_script):
                 scgad_cmd = f"Rscript {scgad_script} {interaction_dir} "
                 out_file = f"{bandnorm_out_dir}/{dataset.dataset_name}_{dataset.res_name}.tsv"
-                scgad_cmd += f"{dataset.assembly} {out_file} "
+                if '_atac' in exp_name:
+                    peaks_file =  str(files("score").joinpath(f"static/{dataset.assembly}_peaks.bed"))
+                    out_file = f"{bandnorm_out_dir}/{dataset.dataset_name}_{dataset.res_name}_atac.tsv"
+                    experiment.res_file = out_file
+                    scgad_cmd += f"{peaks_file} {out_file} "
+                else:
+                    scgad_cmd += f"{dataset.assembly} {out_file} "
                 #scgad_cmd += f"/mnt/rds/genetics01/JinLab/dmp131/score/score/methods/BandNorm/islet_anchors {out_file} "
                 if depth_norm:
                     scgad_cmd += "TRUE"  # depth norm
@@ -205,6 +211,7 @@ def scGAD_exp(x, y, features, dataset, anchor_file, args, exp_name, operations, 
                         scgad_cmd += f" {args.atac_file}"
                 for run_i in range(int(args.n_runs)):
                     start_time = time.time()
+                    print(scgad_cmd)
                     os.system(scgad_cmd)
                     experiment.run(load=load_results, outer_iter=run_i, start_time=start_time, log_wandb=args.wandb, wandb_config=wandb_config)
                 break
@@ -240,7 +247,7 @@ def threeDVI_exp(x, y, features, dataset, anchor_file, args, exp_name, load_resu
             chrom_sizes_fp = str(files("score").joinpath(f"static/{dataset.assembly}.chrom.sizes.txt"))
             train_3dvi(dataset.limit2Mb, 'whole', dataset.resolution, interaction_dir, 
                         f"threeDVI/results/{dataset.dataset_name}_{dataset.res_name}",
-                        f"{ref_dir}/data_summary.txt", chrom_sizes_fp, batchRemoval=True,
+                        f"{ref_dir}/data_summary.txt", chrom_sizes_fp, batchRemoval=args.batch_correct,
                         nLatent=64, gpuFlag=True, parallelCPU=1, pcaNum=50, umapPlot=True, tsnePlot=False, n_epochs=args.three3dvi_epochs)
             
             experiment.run(load=load_results, outer_iter=run_i, start_time=start_time, log_wandb=args.wandb, wandb_config=wandb_config)
@@ -317,7 +324,7 @@ def higashi_exp(x, y, features, dataset, args, load_results=False, fast_higashi=
     if operations is not None:
         exp_name += ':' + ','.join(operations)
     if fast_higashi:
-        experiment = FastHigashiExperiment('fast_higashi', x, y, features, dataset, depth_norm=not args.no_depth_norm, eval_inner=False, simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
+        experiment = FastHigashiExperiment('fast_higashi', x, y, features, dataset, depth_norm=args.depth_norm, eval_inner=False, simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
     else:
         experiment = HigashiExperiment('scghost' if run_scghost else 'higashi', x, y, features, dataset, eval_inner=False, simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
     
@@ -599,3 +606,13 @@ def higashi_exp(x, y, features, dataset, args, load_results=False, fast_higashi=
             else:
                 experiment.run(load=load_results, outer_iter=run_i, start_time=start_time, log_wandb=args.wandb, wandb_config=wandb_config)
                 
+def higlue_exp(x, y, features, dataset, args, load_results=False, wandb_config=None):
+    from score.experiments.higlue_experiment import HiGLUEExperiment
+    
+    experiment = HiGLUEExperiment('higlue', x, y, features, dataset,
+                                  glue_model=args.glue_file, prior_graph=args.prior_graph, rna=args.rna_anndata, hic=args.hic_anndata,
+                                  eval_inner=False, simulate=args.simulate, append_simulated=args.append_simulated, other_args=args)
+    for run_i in range(int(args.n_runs)):
+        start_time = time.time()
+        experiment.run(load=load_results, outer_iter=run_i, start_time=start_time, log_wandb=args.wandb, wandb_config=wandb_config)
+

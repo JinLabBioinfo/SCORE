@@ -61,7 +61,7 @@
 * `--batch_correct` to apply batch correction within the scVI model (default=FALSE)
 
 
-* [Higashi](https://doi.org/10.1038/s41587-021-01034-y) (`Higashi`)
+#### [Higashi](https://doi.org/10.1038/s41587-021-01034-y) (`Higashi`)
 
 * `--higashi_epochs <N>` to set number of epochs (default=60)
 
@@ -72,7 +72,7 @@
 * `--higashi_dryrun` just build the hypergraph and initial SVD embedding but do not train (useful to checking if you have set things up correctly)
 
 
-* [Fast Higashi](https://doi.org/10.1016/j.cels.2022.09.004) (`fast_higashi`/`fast-higashi`)
+#### [Fast Higashi](https://doi.org/10.1016/j.cels.2022.09.004) (`fast_higashi`/`fast-higashi`)
 
 * `--n_strata <N>` to control number of distal strata (default=100) 
 

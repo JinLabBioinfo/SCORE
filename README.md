@@ -74,6 +74,8 @@ We also provide additional baseline methods for benchmarking:
 * `scVI` (sum all interactions at each bin, train scVI model)
 * `scVI_2D` (extract band of interactions, train scVI model)
 
+For detailed usage information refer to the [Tutorials](https://github.com/JinLabBioinfo/SCORE/tree/main/tutorials)
+
 ### Basic CLI usage
 
 We provide a small example dataset in the `examples/data` directory. To run `SCORE` you simple need to provide an input `.scool` file and a metadata reference file. You can specify the embedding tool(s) you wish to test using the `--embedding_algs` argument
